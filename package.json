@@ -11,14 +11,12 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.8.0",
-    "@narrative.io/data-collaboration-sdk-ts": "file:./sdk",
+    "@narrative.io/data-collaboration-sdk-ts": "^2.58.0",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "zod": "^4.0.5"
   },
   "scripts": {
-    "build:sdk": "cd sdk && bun install && bun run build",
-    "prebuild": "bun run build:sdk",
     "build": "tsc --outDir build",
     "start": "bun build/index.js",
     "dev": "bun --watch src/index.ts",
