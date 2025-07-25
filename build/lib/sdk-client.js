@@ -13,22 +13,17 @@ export class NarrativeSDKClient {
     }
     /**
      * Initialize the SDK instance
-     * Note: Actual SDK integration pending resolution of build issues
      */
     async initializeSDK() {
         if (this.sdkInstance) {
             return;
         }
         try {
-            // TODO: Import and initialize the actual SDK once build issues are resolved
-            // const SDK = await import('@narrative.io/data-collaboration-sdk-ts');
-            // this.sdkInstance = new SDK.Client({ apiUrl: this.apiUrl, apiToken: this.apiToken });
-            // For now, provide a placeholder that maintains the interface
-            this.sdkInstance = {
-                initialized: true,
-                apiUrl: this.apiUrl,
-                apiToken: this.apiToken,
-            };
+            const { NarrativeApi } = await import('@narrative.io/data-collaboration-sdk-ts');
+            this.sdkInstance = new NarrativeApi({
+                apiKey: this.apiToken,
+                environment: this.apiUrl.includes('dev') ? 'dev' : 'prod'
+            });
         }
         catch (error) {
             console.error('Failed to initialize Narrative SDK:', error);
@@ -54,12 +49,10 @@ export class NarrativeSDKClient {
      */
     async fetchDatasets() {
         await this.initializeSDK();
-        // TODO: Implement using actual SDK methods
-        throw new Error('Not yet implemented - using legacy API client for now');
+        return await this.sdkInstance.dataset.getDatasets();
     }
     async searchAttributes(query) {
         await this.initializeSDK();
-        // TODO: Implement using actual SDK methods
-        throw new Error('Not yet implemented - using legacy API client for now');
+        return await this.sdkInstance.attribute.getAttributes({ query });
     }
 }
