@@ -1,0 +1,8 @@
+{
+	"mcpServers": {
+		"shortcut": {
+			"args": ["-y", "@shortcut/mcp@latest"],
+			"command": "bunx"
+		}
+	}
+}

@@ -1,0 +1,28 @@
+{
+  "name": "ts_mcp",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^22.14.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "@narrative.io/data-collaboration-sdk-ts": "file:./sdk",
+    "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
+    "zod": "^4.0.5"
+  },
+  "scripts": {
+    "build:sdk": "cd sdk && bun install && bun run build",
+    "prebuild": "bun run build:sdk",
+    "build": "tsc --outDir build",
+    "start": "bun build/index.js",
+    "dev": "bun --watch src/index.ts",
+    "test": "bun test tests/",
+    "test:watch": "bun test tests/ --watch"
+  }
+}
