@@ -1,6 +1,8 @@
 # Narrative MCP Server
 
-A Model Context Protocol (MCP) server that provides access to Narrative's data marketplace APIs through Claude Code and Claude Desktop.
+A Model Context Protocol (MCP) server that provides access to Narrative's Data Collaboration Platform APIs through any MCP server. For integrating your favorite data platform with your favorite LLM.
+
+Learn more about Narrative: https://www.narrative.io/
 
 ## Setup
 
@@ -35,7 +37,7 @@ bun src/index.ts
 
 ## Installation
 
-### For Claude Code Users (Recommended)
+### For Claude Code Users 
 
 The easiest way to install this MCP server is using Claude Code:
 
