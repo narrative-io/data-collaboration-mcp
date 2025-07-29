@@ -120,6 +120,22 @@ export class ResourceManager {
   }
 
   /**
+   * Add multiple access rule resources from API response
+   */
+  addAccessRulesAsResources(accessRules: Array<{ id: number; name?: string; display_name?: string; description?: string; [key: string]: any }>): void {
+    for (const rule of accessRules) {
+      const ruleName = rule.display_name || rule.name || `Access Rule ${rule.id}`;
+      this.setResource(`access-rule-${rule.id}`, {
+        id: `access-rule-${rule.id}`,
+        name: ruleName,
+        content: JSON.stringify(rule, null, 2),
+        description: `Narrative access rule: ${rule.description || ruleName}`,
+        mimeType: "application/json",
+      });
+    }
+  }
+
+  /**
    * Get resources by prefix (e.g., all dataset resources)
    */
   getResourcesByPrefix(prefix: string): Record<string, StoredResource> {

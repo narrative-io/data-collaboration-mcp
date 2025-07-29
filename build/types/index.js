@@ -11,6 +11,25 @@ export const SearchAttributesSchema = z.object({
 export const ListDatasetsSchema = z.object({
 // No parameters required for listing datasets
 });
+export const ListAccessRulesSchema = z.object({
+    owned_only: z.boolean().optional(),
+    shared_only: z.boolean().optional(),
+    tag: z.union([z.string(), z.array(z.string())]).optional(),
+    company_id: z.union([z.number(), z.array(z.number())]).optional(),
+    dataset_id: z.union([z.number(), z.array(z.number())]).optional(),
+    page: z.number().int().positive().default(1),
+    per_page: z.number().int().positive().max(100).default(10),
+});
+export const SearchAccessRulesSchema = z.object({
+    query: z.string().min(1, "Query cannot be empty"),
+    owned_only: z.boolean().optional(),
+    shared_only: z.boolean().optional(),
+    tag: z.union([z.string(), z.array(z.string())]).optional(),
+    company_id: z.union([z.number(), z.array(z.number())]).optional(),
+    dataset_id: z.union([z.number(), z.array(z.number())]).optional(),
+    page: z.number().int().positive().default(1),
+    per_page: z.number().int().positive().max(100).default(10),
+});
 // Enhanced error types
 export class ToolValidationError extends Error {
     toolName;

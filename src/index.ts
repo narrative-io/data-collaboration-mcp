@@ -55,7 +55,7 @@ class MyMcpServer {
             // Support for logging messages
           },
         },
-        instructions: "Narrative MCP Server provides access to Narrative's data marketplace APIs. Available tools: echo (test), search_attributes (search Rosetta Stone), list_datasets (list available datasets). Resources are created dynamically when tools are used.",
+        instructions: "Narrative MCP Server provides access to Narrative's data marketplace APIs. Available tools: echo (test), search_attributes (search Rosetta Stone), list_datasets (list available datasets), list_access_rules (list access rules with filtering), search_access_rules (search access rules). Resources are created dynamically when tools are used.",
       }
     );
 

@@ -30,6 +30,12 @@ export class ResourceHandlers {
                     description: "Narrative marketplace dataset details with full schema and metadata",
                     mimeType: "application/json",
                 },
+                {
+                    uriTemplate: "access-rule://{id}",
+                    name: "Access Rule Resource",
+                    description: "Narrative marketplace access rule details with NQL query and collaboration settings",
+                    mimeType: "application/json",
+                },
             ];
             return {
                 resourceTemplates,
@@ -56,6 +62,28 @@ export class ResourceHandlers {
                 }
                 catch (error) {
                     throw new McpError(ErrorCode.InvalidRequest, `Dataset ${datasetId} not found: ${error}`);
+                }
+            }
+            // Handle ResourceTemplate pattern: access-rule://{id}
+            if (url.protocol === "access-rule:") {
+                const accessRuleId = parseInt(url.pathname.replace(/^\//, ""), 10);
+                if (isNaN(accessRuleId)) {
+                    throw new McpError(ErrorCode.InvalidRequest, `Invalid access rule ID: ${url.pathname.replace(/^\//, "")}`);
+                }
+                try {
+                    const accessRule = await this.apiClient.fetchAccessRuleById(accessRuleId);
+                    return {
+                        contents: [
+                            {
+                                uri: request.params.uri,
+                                mimeType: "application/json",
+                                text: JSON.stringify(accessRule, null, 2),
+                            },
+                        ],
+                    };
+                }
+                catch (error) {
+                    throw new McpError(ErrorCode.InvalidRequest, `Access rule ${accessRuleId} not found: ${error}`);
                 }
             }
             // Handle legacy resource pattern: resource:///
