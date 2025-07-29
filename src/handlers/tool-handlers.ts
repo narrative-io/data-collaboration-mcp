@@ -11,7 +11,9 @@ import type {
   ToolValidationError,
   EchoToolInput,
   SearchAttributesInput,
-  ListDatasetsInput 
+  ListDatasetsInput,
+  ListAccessRulesInput,
+  SearchAccessRulesInput
 } from "../types/index.js";
 import { NarrativeApiClient } from "../lib/api-client.js";
 import { ToolRegistry } from "../lib/tool-registry.js";
@@ -74,6 +76,10 @@ export class ToolHandlers {
               return this.handleSearchAttributes(validatedInput as SearchAttributesInput);
             case "list_datasets":
               return this.handleListDatasets(validatedInput as ListDatasetsInput);
+            case "list_access_rules":
+              return this.handleListAccessRules(validatedInput as ListAccessRulesInput);
+            case "search_access_rules":
+              return this.handleSearchAccessRules(validatedInput as SearchAccessRulesInput);
             default:
               throw new McpError(
                 ErrorCode.MethodNotFound,
@@ -166,6 +172,88 @@ export class ToolHandlers {
           {
             type: "text",
             text: `Error fetching datasets: ${error}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  private async handleListAccessRules(args: ListAccessRulesInput) {
+    try {
+      const response = await this.apiClient.fetchAccessRules(args);
+      
+      // Store access rules in memory for resource access
+      this.resourceManager.addAccessRulesAsResources(response.records);
+
+      // Format the response with resource links
+      const formattedResults = response.records.map(rule => {
+        const name = rule.display_name || rule.name || `Access Rule ${rule.id}`;
+        const description = rule.description ? rule.description.substring(0, 100) : 'No description available';
+        const tagsText = rule.tags && rule.tags.length > 0 ? ` [${rule.tags.join(', ')}]` : '';
+        const typeText = rule.type ? ` (${rule.type})` : '';
+        return `- ${name} (ID: ${rule.id})${typeText}: ${description}...${tagsText}\n  Resource: access-rule://${rule.id}`;
+      }).join('\n');
+
+      const paginationText = response.pagination 
+        ? `\nPage ${response.pagination.page} of ${response.pagination.total_pages} (${response.pagination.total_records} total)`
+        : '';
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Found ${response.records.length} access rules${paginationText}\n\n${formattedResults}\n\nAccess full access rule details using the resource links above (e.g., access-rule://12345).`
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error fetching access rules: ${error}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  private async handleSearchAccessRules(args: SearchAccessRulesInput) {
+    try {
+      const response = await this.apiClient.searchAccessRules(args);
+      
+      // Store access rules in memory for resource access
+      this.resourceManager.addAccessRulesAsResources(response.records);
+
+      // Format the response with resource links
+      const formattedResults = response.records.map(rule => {
+        const name = rule.display_name || rule.name || `Access Rule ${rule.id}`;
+        const description = rule.description ? rule.description.substring(0, 100) : 'No description available';
+        const tagsText = rule.tags && rule.tags.length > 0 ? ` [${rule.tags.join(', ')}]` : '';
+        const typeText = rule.type ? ` (${rule.type})` : '';
+        return `- ${name} (ID: ${rule.id})${typeText}: ${description}...${tagsText}\n  Resource: access-rule://${rule.id}`;
+      }).join('\n');
+
+      const paginationText = response.pagination 
+        ? `\nPage ${response.pagination.page} of ${response.pagination.total_pages} (${response.pagination.total_records} total)`
+        : '';
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Found ${response.records.length} access rules matching "${args.query}"${paginationText}\n\n${formattedResults}\n\nAccess full access rule details using the resource links above (e.g., access-rule://12345).`
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error searching access rules: ${error}`,
           },
         ],
         isError: true,

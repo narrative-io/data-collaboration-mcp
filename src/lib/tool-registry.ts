@@ -4,9 +4,13 @@ import type {
   EchoToolSchema, 
   SearchAttributesSchema, 
   ListDatasetsSchema,
+  ListAccessRulesSchema,
+  SearchAccessRulesSchema,
   EchoToolInput,
   SearchAttributesInput,
-  ListDatasetsInput
+  ListDatasetsInput,
+  ListAccessRulesInput,
+  SearchAccessRulesInput
 } from "../types/index.js";
 
 /**
@@ -67,6 +71,115 @@ export class ToolRegistry {
         required: [],
       },
     },
+    list_access_rules: {
+      name: "list_access_rules",
+      description: "List access rules with optional filtering by ownership, tags, company, or dataset",
+      inputSchema: {
+        type: "object",
+        properties: {
+          owned_only: {
+            type: "boolean",
+            description: "Filter for owned access rules only",
+          },
+          shared_only: {
+            type: "boolean", 
+            description: "Filter for shared access rules only",
+          },
+          tag: {
+            anyOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } }
+            ],
+            description: "Filter by tag(s)",
+          },
+          company_id: {
+            anyOf: [
+              { type: "number" },
+              { type: "array", items: { type: "number" } }
+            ],
+            description: "Filter by company ID(s)",
+          },
+          dataset_id: {
+            anyOf: [
+              { type: "number" },
+              { type: "array", items: { type: "number" } }
+            ],
+            description: "Filter by dataset ID(s)",
+          },
+          page: {
+            type: "number",
+            description: "Page number (starts at 1)",
+            minimum: 1,
+            default: 1,
+          },
+          per_page: {
+            type: "number",
+            description: "Results per page (default: 10)",
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+        },
+        required: [],
+      },
+    },
+    search_access_rules: {
+      name: "search_access_rules", 
+      description: "Search access rules with query string and optional filtering",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Search term for access rules",
+            minLength: 1,
+          },
+          owned_only: {
+            type: "boolean",
+            description: "Filter for owned access rules only",
+          },
+          shared_only: {
+            type: "boolean",
+            description: "Filter for shared access rules only", 
+          },
+          tag: {
+            anyOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } }
+            ],
+            description: "Filter by tag(s)",
+          },
+          company_id: {
+            anyOf: [
+              { type: "number" },
+              { type: "array", items: { type: "number" } }
+            ],
+            description: "Filter by company ID(s)",
+          },
+          dataset_id: {
+            anyOf: [
+              { type: "number" },
+              { type: "array", items: { type: "number" } }
+            ],
+            description: "Filter by dataset ID(s)",
+          },
+          page: {
+            type: "number",
+            description: "Page number (starts at 1)",
+            minimum: 1,
+            default: 1,
+          },
+          per_page: {
+            type: "number",
+            description: "Results per page (default: 10)",
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+        },
+        required: ["query"],
+      },
+    },
   };
 
   /**
@@ -114,6 +227,39 @@ export class ToolRegistry {
   }
 
   /**
+   * Validate input for list_access_rules tool using Zod schema
+   */
+  static validateListAccessRulesInput(input: unknown): ListAccessRulesInput {
+    const ListAccessRulesSchema = z.object({
+      owned_only: z.boolean().optional(),
+      shared_only: z.boolean().optional(),
+      tag: z.union([z.string(), z.array(z.string())]).optional(),
+      company_id: z.union([z.number(), z.array(z.number())]).optional(),
+      dataset_id: z.union([z.number(), z.array(z.number())]).optional(),
+      page: z.number().int().positive().default(1),
+      per_page: z.number().int().positive().max(100).default(10),
+    });
+    return ListAccessRulesSchema.parse(input);
+  }
+
+  /**
+   * Validate input for search_access_rules tool using Zod schema
+   */
+  static validateSearchAccessRulesInput(input: unknown): SearchAccessRulesInput {
+    const SearchAccessRulesSchema = z.object({
+      query: z.string().min(1, "Query cannot be empty"),
+      owned_only: z.boolean().optional(),
+      shared_only: z.boolean().optional(),
+      tag: z.union([z.string(), z.array(z.string())]).optional(),
+      company_id: z.union([z.number(), z.array(z.number())]).optional(),
+      dataset_id: z.union([z.number(), z.array(z.number())]).optional(),
+      page: z.number().int().positive().default(1),
+      per_page: z.number().int().positive().max(100).default(10),
+    });
+    return SearchAccessRulesSchema.parse(input);
+  }
+
+  /**
    * Generic validation method that routes to the appropriate validator
    */
   static validateToolInput(toolName: string, input: unknown): unknown {
@@ -124,6 +270,10 @@ export class ToolRegistry {
         return this.validateSearchAttributesInput(input);
       case "list_datasets":
         return this.validateListDatasetsInput(input);
+      case "list_access_rules":
+        return this.validateListAccessRulesInput(input);
+      case "search_access_rules":
+        return this.validateSearchAccessRulesInput(input);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
