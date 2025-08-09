@@ -30,6 +30,9 @@ export const SearchAccessRulesSchema = z.object({
     page: z.number().int().positive().default(1),
     per_page: z.number().int().positive().max(100).default(10),
 });
+export const DatasetStatisticsSchema = z.object({
+    dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
+});
 // Enhanced error types
 export class ToolValidationError extends Error {
     toolName;

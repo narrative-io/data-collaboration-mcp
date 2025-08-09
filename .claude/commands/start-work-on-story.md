@@ -74,6 +74,7 @@ bun run dev
 - [ ] Check environment variables (.env file)
 - [ ] Ensure API endpoints are accessible
 - [ ] Review relevant TypeScript types in `src/types/`
+- [ ] If you are calling the Narrative API, are you using the integrated Narrative SDK @narrative.io/data-collaboration-sdk-ts ?
 
 ### 4. Implementation Strategy
 

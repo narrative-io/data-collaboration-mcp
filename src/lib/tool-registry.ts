@@ -6,11 +6,13 @@ import type {
   ListDatasetsSchema,
   ListAccessRulesSchema,
   SearchAccessRulesSchema,
+  DatasetStatisticsSchema,
   EchoToolInput,
   SearchAttributesInput,
   ListDatasetsInput,
   ListAccessRulesInput,
-  SearchAccessRulesInput
+  SearchAccessRulesInput,
+  DatasetStatisticsInput
 } from "../types/index.js";
 
 /**
@@ -180,6 +182,21 @@ export class ToolRegistry {
         required: ["query"],
       },
     },
+    dataset_statistics: {
+      name: "dataset_statistics",
+      description: "Get comprehensive statistics for a specific dataset including row count, column count, and data quality metrics",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dataset_id: {
+            type: "string",
+            description: "The ID of the dataset to get statistics for",
+            minLength: 1,
+          },
+        },
+        required: ["dataset_id"],
+      },
+    },
   };
 
   /**
@@ -260,6 +277,16 @@ export class ToolRegistry {
   }
 
   /**
+   * Validate input for dataset_statistics tool using Zod schema
+   */
+  static validateDatasetStatisticsInput(input: unknown): DatasetStatisticsInput {
+    const DatasetStatisticsSchema = z.object({
+      dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
+    });
+    return DatasetStatisticsSchema.parse(input);
+  }
+
+  /**
    * Generic validation method that routes to the appropriate validator
    */
   static validateToolInput(toolName: string, input: unknown): unknown {
@@ -274,6 +301,8 @@ export class ToolRegistry {
         return this.validateListAccessRulesInput(input);
       case "search_access_rules":
         return this.validateSearchAccessRulesInput(input);
+      case "dataset_statistics":
+        return this.validateDatasetStatisticsInput(input);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }

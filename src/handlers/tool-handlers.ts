@@ -13,7 +13,8 @@ import type {
   SearchAttributesInput,
   ListDatasetsInput,
   ListAccessRulesInput,
-  SearchAccessRulesInput
+  SearchAccessRulesInput,
+  DatasetStatisticsInput
 } from "../types/index.js";
 import { NarrativeApiClient } from "../lib/api-client.js";
 import { ToolRegistry } from "../lib/tool-registry.js";
@@ -80,6 +81,8 @@ export class ToolHandlers {
               return this.handleListAccessRules(validatedInput as ListAccessRulesInput);
             case "search_access_rules":
               return this.handleSearchAccessRules(validatedInput as SearchAccessRulesInput);
+            case "dataset_statistics":
+              return this.handleDatasetStatistics(validatedInput as DatasetStatisticsInput);
             default:
               throw new McpError(
                 ErrorCode.MethodNotFound,
@@ -261,6 +264,83 @@ export class ToolHandlers {
           {
             type: "text",
             text: `Error searching access rules: ${error}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  private async handleDatasetStatistics(args: DatasetStatisticsInput) {
+    try {
+      const response = await this.apiClient.fetchDatasetStatistics(args.dataset_id);
+      
+      // Store statistics as MCP resource for detailed access
+      const resourceId = `dataset-statistics-${args.dataset_id}`;
+      this.resourceManager.setResource(resourceId, {
+        id: resourceId,
+        name: `Statistics for Dataset ${args.dataset_id}`,
+        content: JSON.stringify(response, null, 2),
+        description: `Comprehensive statistics for dataset ${args.dataset_id}`,
+        mimeType: "application/json"
+      });
+
+      // The SDK returns ApiRecords<DatasetTableSummary> with records array
+      const records = response.records || [];
+      const totalRecords = response.total || records.length;
+      
+      const formattedStats = [
+        `**Dataset Statistics for ${args.dataset_id}**`,
+        ``,
+        `📊 **Core Metrics:**`,
+      ];
+
+      if (records.length > 0) {
+        const latestRecord = records[0]; // Most recent statistics
+        formattedStats.push(
+          `- Active Records: ${latestRecord.active_dataset_stored_records?.toLocaleString() || 'N/A'}`,
+          `- Active Files: ${latestRecord.active_dataset_stored_files?.toLocaleString() || 'N/A'}`,
+          `- Active Storage: ${latestRecord.active_dataset_stored_bytes ? (latestRecord.active_dataset_stored_bytes / 1024 / 1024).toFixed(2) + ' MB' : 'N/A'}`,
+          `- Total Records (est): ${latestRecord.est_total_dataset_stored_records?.toLocaleString() || 'N/A'}`,
+          `- Total Storage (est): ${latestRecord.est_total_dataset_stored_bytes ? (latestRecord.est_total_dataset_stored_bytes / 1024 / 1024).toFixed(2) + ' MB' : 'N/A'}`,
+        );
+
+        if (latestRecord.snapshot_created_at) {
+          formattedStats.push(`- Last Snapshot: ${new Date(latestRecord.snapshot_created_at).toLocaleDateString()}`);
+        }
+
+        if (latestRecord.column_summary && latestRecord.column_summary.length > 0) {
+          formattedStats.push(``, `📊 **Column Summary:**`);
+          latestRecord.column_summary.slice(0, 5).forEach((col: any) => {
+            formattedStats.push(`- ${col.name} (${col.type}): ${col.value_count?.toLocaleString() || 'N/A'} values`);
+          });
+          
+          if (latestRecord.column_summary.length > 5) {
+            formattedStats.push(`- ... and ${latestRecord.column_summary.length - 5} more columns`);
+          }
+        }
+      } else {
+        formattedStats.push(`- No statistics records found`);
+      }
+
+      formattedStats.push(``, `📄 **Summary:**`);
+      formattedStats.push(`- Found ${totalRecords} statistics record${totalRecords !== 1 ? 's' : ''}`);
+      formattedStats.push(``, `Resource: dataset-statistics://${args.dataset_id}`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedStats.join('\n')
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error fetching dataset statistics for ${args.dataset_id}: ${error}`,
           },
         ],
         isError: true,

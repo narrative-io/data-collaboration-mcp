@@ -1,13 +1,16 @@
 import axios from "axios";
 import type { AttributeResponse, DatasetResponse, Dataset, AccessRulesResponse, AccessRule, ListAccessRulesInput, SearchAccessRulesInput } from "../types/index.js";
+import { NarrativeSDKClient } from "./sdk-client.js";
 
 export class NarrativeApiClient {
   private readonly apiUrl: string;
   private readonly apiToken: string;
+  private readonly sdkClient: NarrativeSDKClient;
 
   constructor(apiUrl: string, apiToken: string) {
     this.apiUrl = apiUrl;
     this.apiToken = apiToken;
+    this.sdkClient = new NarrativeSDKClient(apiUrl, apiToken);
   }
 
   private get headers() {
@@ -64,6 +67,22 @@ export class NarrativeApiClient {
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch dataset ${id}: ${error}`);
+    }
+  }
+
+  async fetchDatasetStatistics(id: string): Promise<any> {
+    try {
+      const sdk = await this.sdkClient.getSDKInstance();
+      const datasetId = parseInt(id, 10);
+      
+      if (isNaN(datasetId)) {
+        throw new Error(`Invalid dataset ID: ${id}. Must be a number.`);
+      }
+      
+      const statistics = await sdk.getStatistics(datasetId);
+      return statistics;
+    } catch (error) {
+      throw new Error(`Failed to fetch dataset statistics for ${id}: ${error}`);
     }
   }
 
