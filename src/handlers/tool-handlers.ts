@@ -120,9 +120,16 @@ export class ToolHandlers {
       this.resourceManager.addAttributesAsResources(response.records);
 
       // Format the response
-      const formattedResults = response.records.map(attr => 
-        `- ${attr.display_name} (${attr.name}): ${attr.description.substring(0, 100)}...`
-      ).join('\n');
+      const formattedResults = response.records.map(attr => {
+        // Include full description, with smart truncation only for extremely long descriptions
+        const description = attr.description.length > 500 
+          ? `${attr.description.substring(0, 497)}...` 
+          : attr.description;
+        
+        return `- **${attr.display_name}** (ID: ${attr.id}, Name: ${attr.name})
+  Type: ${attr.type}
+  Description: ${description}`;
+      }).join('\n\n');
 
       return {
         content: [
