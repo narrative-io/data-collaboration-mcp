@@ -1,13 +1,16 @@
 import axios from "axios";
-import type { AttributeResponse, DatasetResponse, Dataset, AccessRulesResponse, AccessRule, ListAccessRulesInput, SearchAccessRulesInput, DatasetStatisticsResponse } from "../types/index.js";
+import type { AttributeResponse, DatasetResponse, Dataset, AccessRulesResponse, AccessRule, ListAccessRulesInput, SearchAccessRulesInput } from "../types/index.js";
+import { NarrativeSDKClient } from "./sdk-client.js";
 
 export class NarrativeApiClient {
   private readonly apiUrl: string;
   private readonly apiToken: string;
+  private readonly sdkClient: NarrativeSDKClient;
 
   constructor(apiUrl: string, apiToken: string) {
     this.apiUrl = apiUrl;
     this.apiToken = apiToken;
+    this.sdkClient = new NarrativeSDKClient(apiUrl, apiToken);
   }
 
   private get headers() {
@@ -67,14 +70,17 @@ export class NarrativeApiClient {
     }
   }
 
-  async fetchDatasetStatistics(id: string): Promise<DatasetStatisticsResponse> {
-    const url = new URL(`${this.apiUrl}/datasets/${id}/stats`);
-    
+  async fetchDatasetStatistics(id: string): Promise<any> {
     try {
-      const response = await axios.get<DatasetStatisticsResponse>(url.toString(), {
-        headers: this.headers,
-      });
-      return response.data;
+      const sdk = await this.sdkClient.getSDKInstance();
+      const datasetId = parseInt(id, 10);
+      
+      if (isNaN(datasetId)) {
+        throw new Error(`Invalid dataset ID: ${id}. Must be a number.`);
+      }
+      
+      const statistics = await sdk.dataset.getStatistics(datasetId);
+      return statistics;
     } catch (error) {
       throw new Error(`Failed to fetch dataset statistics for ${id}: ${error}`);
     }

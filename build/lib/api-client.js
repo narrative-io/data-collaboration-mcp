@@ -1,10 +1,13 @@
 import axios from "axios";
+import { NarrativeSDKClient } from "./sdk-client.js";
 export class NarrativeApiClient {
     apiUrl;
     apiToken;
+    sdkClient;
     constructor(apiUrl, apiToken) {
         this.apiUrl = apiUrl;
         this.apiToken = apiToken;
+        this.sdkClient = new NarrativeSDKClient(apiUrl, apiToken);
     }
     get headers() {
         return {
@@ -54,12 +57,14 @@ export class NarrativeApiClient {
         }
     }
     async fetchDatasetStatistics(id) {
-        const url = new URL(`${this.apiUrl}/datasets/${id}/statistics`);
         try {
-            const response = await axios.get(url.toString(), {
-                headers: this.headers,
-            });
-            return response.data;
+            const sdk = await this.sdkClient.getSDKInstance();
+            const datasetId = parseInt(id, 10);
+            if (isNaN(datasetId)) {
+                throw new Error(`Invalid dataset ID: ${id}. Must be a number.`);
+            }
+            const statistics = await sdk.dataset.getStatistics(datasetId);
+            return statistics;
         }
         catch (error) {
             throw new Error(`Failed to fetch dataset statistics for ${id}: ${error}`);

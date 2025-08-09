@@ -223,34 +223,39 @@ export class ToolHandlers {
             this.resourceManager.setResource(resourceId, {
                 id: resourceId,
                 name: `Statistics for Dataset ${args.dataset_id}`,
-                content: JSON.stringify(response.statistics, null, 2),
+                content: JSON.stringify(response, null, 2),
                 description: `Comprehensive statistics for dataset ${args.dataset_id}`,
                 mimeType: "application/json"
             });
-            // Format the statistics display
-            const stats = response.statistics;
+            // The SDK returns ApiRecords<DatasetTableSummary> with records array
+            const records = response.records || [];
+            const totalRecords = response.total || records.length;
             const formattedStats = [
-                `**Dataset Statistics for ${stats.dataset_id}**`,
+                `**Dataset Statistics for ${args.dataset_id}**`,
                 ``,
                 `📊 **Core Metrics:**`,
-                `- Row Count: ${stats.row_count.toLocaleString()}`,
-                `- Column Count: ${stats.column_count}`,
-                `- Last Updated: ${new Date(stats.last_updated).toLocaleDateString()}`,
             ];
-            // Add optional statistics if available
-            if (stats.data_size_bytes) {
-                const sizeInMB = (stats.data_size_bytes / 1024 / 1024).toFixed(2);
-                formattedStats.push(`- Data Size: ${sizeInMB} MB`);
+            if (records.length > 0) {
+                const latestRecord = records[0]; // Most recent statistics
+                formattedStats.push(`- Active Records: ${latestRecord.active_dataset_stored_records?.toLocaleString() || 'N/A'}`, `- Active Files: ${latestRecord.active_dataset_stored_files?.toLocaleString() || 'N/A'}`, `- Active Storage: ${latestRecord.active_dataset_stored_bytes ? (latestRecord.active_dataset_stored_bytes / 1024 / 1024).toFixed(2) + ' MB' : 'N/A'}`, `- Total Records (est): ${latestRecord.est_total_dataset_stored_records?.toLocaleString() || 'N/A'}`, `- Total Storage (est): ${latestRecord.est_total_dataset_stored_bytes ? (latestRecord.est_total_dataset_stored_bytes / 1024 / 1024).toFixed(2) + ' MB' : 'N/A'}`);
+                if (latestRecord.snapshot_created_at) {
+                    formattedStats.push(`- Last Snapshot: ${new Date(latestRecord.snapshot_created_at).toLocaleDateString()}`);
+                }
+                if (latestRecord.column_summary && latestRecord.column_summary.length > 0) {
+                    formattedStats.push(``, `📊 **Column Summary:**`);
+                    latestRecord.column_summary.slice(0, 5).forEach((col) => {
+                        formattedStats.push(`- ${col.name} (${col.type}): ${col.value_count?.toLocaleString() || 'N/A'} values`);
+                    });
+                    if (latestRecord.column_summary.length > 5) {
+                        formattedStats.push(`- ... and ${latestRecord.column_summary.length - 5} more columns`);
+                    }
+                }
             }
-            if (stats.quality_score !== undefined) {
-                formattedStats.push(`- Quality Score: ${stats.quality_score}/100`);
+            else {
+                formattedStats.push(`- No statistics records found`);
             }
-            if (stats.geographic_coverage && stats.geographic_coverage.length > 0) {
-                formattedStats.push(``, `🌍 **Geographic Coverage:** ${stats.geographic_coverage.join(', ')}`);
-            }
-            if (stats.time_range) {
-                formattedStats.push(``, `📅 **Time Range:** ${stats.time_range.start} to ${stats.time_range.end}`);
-            }
+            formattedStats.push(``, `📄 **Summary:**`);
+            formattedStats.push(`- Found ${totalRecords} statistics record${totalRecords !== 1 ? 's' : ''}`);
             formattedStats.push(``, `Resource: dataset-statistics://${args.dataset_id}`);
             return {
                 content: [
