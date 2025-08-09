@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { AttributeResponse, DatasetResponse, Dataset, AccessRulesResponse, AccessRule, ListAccessRulesInput, SearchAccessRulesInput } from "../types/index.js";
+import type { AttributeResponse, DatasetResponse, Dataset, AccessRulesResponse, AccessRule, ListAccessRulesInput, SearchAccessRulesInput, DatasetStatisticsResponse } from "../types/index.js";
 
 export class NarrativeApiClient {
   private readonly apiUrl: string;
@@ -64,6 +64,19 @@ export class NarrativeApiClient {
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch dataset ${id}: ${error}`);
+    }
+  }
+
+  async fetchDatasetStatistics(id: string): Promise<DatasetStatisticsResponse> {
+    const url = new URL(`${this.apiUrl}/datasets/${id}/statistics`);
+    
+    try {
+      const response = await axios.get<DatasetStatisticsResponse>(url.toString(), {
+        headers: this.headers,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch dataset statistics for ${id}: ${error}`);
     }
   }
 

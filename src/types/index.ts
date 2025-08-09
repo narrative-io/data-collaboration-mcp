@@ -51,6 +51,22 @@ export interface DatasetResponse {
   // Additional pagination fields will be added if supported by API
 }
 
+// Dataset Statistics types
+export interface DatasetStatistics {
+  dataset_id: string;
+  row_count: number;
+  column_count: number;
+  last_updated: string;
+  data_size_bytes?: number;
+  geographic_coverage?: string[];
+  time_range?: { start: string; end: string };
+  quality_score?: number;
+}
+
+export interface DatasetStatisticsResponse {
+  statistics: DatasetStatistics;
+}
+
 // Access Rules types
 export interface AccessRule {
   id: number;
@@ -117,12 +133,17 @@ export const SearchAccessRulesSchema = z.object({
   per_page: z.number().int().positive().max(100).default(10),
 });
 
+export const DatasetStatisticsSchema = z.object({
+  dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
+});
+
 // Type exports from schemas
 export type EchoToolInput = z.infer<typeof EchoToolSchema>;
 export type SearchAttributesInput = z.infer<typeof SearchAttributesSchema>;
 export type ListDatasetsInput = z.infer<typeof ListDatasetsSchema>;
 export type ListAccessRulesInput = z.infer<typeof ListAccessRulesSchema>;
 export type SearchAccessRulesInput = z.infer<typeof SearchAccessRulesSchema>;
+export type DatasetStatisticsInput = z.infer<typeof DatasetStatisticsSchema>;
 
 // Tool definition interface for better organization
 export interface ToolDefinition {

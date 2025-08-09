@@ -48,6 +48,8 @@ export class ToolHandlers {
                         return this.handleListAccessRules(validatedInput);
                     case "search_access_rules":
                         return this.handleSearchAccessRules(validatedInput);
+                    case "dataset_statistics":
+                        return this.handleDatasetStatistics(validatedInput);
                     default:
                         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${request.params.name}`);
                 }
@@ -207,6 +209,64 @@ export class ToolHandlers {
                     {
                         type: "text",
                         text: `Error searching access rules: ${error}`,
+                    },
+                ],
+                isError: true,
+            };
+        }
+    }
+    async handleDatasetStatistics(args) {
+        try {
+            const response = await this.apiClient.fetchDatasetStatistics(args.dataset_id);
+            // Store statistics as MCP resource for detailed access
+            const resourceId = `dataset-statistics-${args.dataset_id}`;
+            this.resourceManager.setResource(resourceId, {
+                id: resourceId,
+                name: `Statistics for Dataset ${args.dataset_id}`,
+                content: JSON.stringify(response.statistics, null, 2),
+                description: `Comprehensive statistics for dataset ${args.dataset_id}`,
+                mimeType: "application/json"
+            });
+            // Format the statistics display
+            const stats = response.statistics;
+            const formattedStats = [
+                `**Dataset Statistics for ${stats.dataset_id}**`,
+                ``,
+                `📊 **Core Metrics:**`,
+                `- Row Count: ${stats.row_count.toLocaleString()}`,
+                `- Column Count: ${stats.column_count}`,
+                `- Last Updated: ${new Date(stats.last_updated).toLocaleDateString()}`,
+            ];
+            // Add optional statistics if available
+            if (stats.data_size_bytes) {
+                const sizeInMB = (stats.data_size_bytes / 1024 / 1024).toFixed(2);
+                formattedStats.push(`- Data Size: ${sizeInMB} MB`);
+            }
+            if (stats.quality_score !== undefined) {
+                formattedStats.push(`- Quality Score: ${stats.quality_score}/100`);
+            }
+            if (stats.geographic_coverage && stats.geographic_coverage.length > 0) {
+                formattedStats.push(``, `🌍 **Geographic Coverage:** ${stats.geographic_coverage.join(', ')}`);
+            }
+            if (stats.time_range) {
+                formattedStats.push(``, `📅 **Time Range:** ${stats.time_range.start} to ${stats.time_range.end}`);
+            }
+            formattedStats.push(``, `Resource: dataset-statistics://${args.dataset_id}`);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: formattedStats.join('\n')
+                    },
+                ],
+            };
+        }
+        catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error fetching dataset statistics for ${args.dataset_id}: ${error}`,
                     },
                 ],
                 isError: true,

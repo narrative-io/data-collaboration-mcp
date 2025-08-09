@@ -53,6 +53,18 @@ export class NarrativeApiClient {
             throw new Error(`Failed to fetch dataset ${id}: ${error}`);
         }
     }
+    async fetchDatasetStatistics(id) {
+        const url = new URL(`${this.apiUrl}/datasets/${id}/statistics`);
+        try {
+            const response = await axios.get(url.toString(), {
+                headers: this.headers,
+            });
+            return response.data;
+        }
+        catch (error) {
+            throw new Error(`Failed to fetch dataset statistics for ${id}: ${error}`);
+        }
+    }
     async fetchAccessRules(params) {
         const url = new URL(`${this.apiUrl}/v2/access-rules`);
         if (params.owned_only !== undefined) {
