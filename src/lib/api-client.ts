@@ -68,7 +68,7 @@ export class NarrativeApiClient {
   }
 
   async fetchDatasetStatistics(id: string): Promise<DatasetStatisticsResponse> {
-    const url = new URL(`${this.apiUrl}/datasets/${id}/statistics`);
+    const url = new URL(`${this.apiUrl}/datasets/${id}/stats`);
     
     try {
       const response = await axios.get<DatasetStatisticsResponse>(url.toString(), {
