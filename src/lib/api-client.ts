@@ -79,7 +79,7 @@ export class NarrativeApiClient {
         throw new Error(`Invalid dataset ID: ${id}. Must be a number.`);
       }
       
-      const statistics = await sdk.dataset.getStatistics(datasetId);
+      const statistics = await sdk.getStatistics(datasetId);
       return statistics;
     } catch (error) {
       throw new Error(`Failed to fetch dataset statistics for ${id}: ${error}`);

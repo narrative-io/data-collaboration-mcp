@@ -22,10 +22,20 @@ export class NarrativeSDKClient {
 
     try {
       const { NarrativeApi } = await import('@narrative.io/data-collaboration-sdk-ts');
-      this.sdkInstance = new NarrativeApi({ 
-        apiKey: this.apiToken,
-        environment: this.apiUrl.includes('dev') ? 'dev' : 'prod'
-      });
+      
+      // Temporarily suppress console.log to prevent SDK banner from interfering with MCP JSON-RPC
+      const originalConsoleLog = console.log;
+      console.log = () => {}; // Suppress all console.log output
+      
+      try {
+        this.sdkInstance = new NarrativeApi({ 
+          apiKey: this.apiToken,
+          environment: this.apiUrl.includes('dev') ? 'dev' : 'prod'
+        });
+      } finally {
+        // Always restore console.log
+        console.log = originalConsoleLog;
+      }
     } catch (error) {
       console.error('Failed to initialize Narrative SDK:', error);
       throw new Error('SDK initialization failed');
