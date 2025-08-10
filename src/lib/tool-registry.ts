@@ -7,12 +7,14 @@ import type {
   ListAccessRulesSchema,
   SearchAccessRulesSchema,
   DatasetStatisticsSchema,
+  DatasetSampleSchema,
   EchoToolInput,
   SearchAttributesInput,
   ListDatasetsInput,
   ListAccessRulesInput,
   SearchAccessRulesInput,
-  DatasetStatisticsInput
+  DatasetStatisticsInput,
+  DatasetSampleInput
 } from "../types/index.js";
 
 /**
@@ -197,6 +199,28 @@ export class ToolRegistry {
         required: ["dataset_id"],
       },
     },
+    dataset_sample: {
+      name: "dataset_sample",
+      description: "Retrieve sample records from a dataset for data preview and schema understanding",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dataset_id: {
+            type: "string",
+            description: "The ID of the dataset to get sample data from",
+            minLength: 1,
+          },
+          size: {
+            type: "number",
+            description: "Number of sample records to retrieve (default: 10, max: 100)",
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+        },
+        required: ["dataset_id"],
+      },
+    },
   };
 
   /**
@@ -287,6 +311,17 @@ export class ToolRegistry {
   }
 
   /**
+   * Validate input for dataset_sample tool using Zod schema
+   */
+  static validateDatasetSampleInput(input: unknown): DatasetSampleInput {
+    const DatasetSampleSchema = z.object({
+      dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
+      size: z.number().int().positive().max(100).default(10).optional(),
+    });
+    return DatasetSampleSchema.parse(input);
+  }
+
+  /**
    * Generic validation method that routes to the appropriate validator
    */
   static validateToolInput(toolName: string, input: unknown): unknown {
@@ -303,6 +338,8 @@ export class ToolRegistry {
         return this.validateSearchAccessRulesInput(input);
       case "dataset_statistics":
         return this.validateDatasetStatisticsInput(input);
+      case "dataset_sample":
+        return this.validateDatasetSampleInput(input);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }

@@ -67,6 +67,24 @@ export interface DatasetStatisticsResponse {
   statistics: DatasetStatistics;
 }
 
+// Dataset Sample types
+export interface DatasetSampleRow {
+  [column: string]: string | number | boolean | null;
+}
+
+export interface DatasetSample {
+  dataset_id: string;
+  records: DatasetSampleRow[];
+  total_records?: number;
+  sample_size: number;
+  columns?: string[];
+  sample_timestamp?: string;
+}
+
+export interface DatasetSampleResponse {
+  records: DatasetSampleRow[];
+}
+
 // Access Rules types
 export interface AccessRule {
   id: number;
@@ -137,6 +155,11 @@ export const DatasetStatisticsSchema = z.object({
   dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
 });
 
+export const DatasetSampleSchema = z.object({
+  dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
+  size: z.number().int().positive().max(100).default(10).optional(),
+});
+
 // Type exports from schemas
 export type EchoToolInput = z.infer<typeof EchoToolSchema>;
 export type SearchAttributesInput = z.infer<typeof SearchAttributesSchema>;
@@ -144,6 +167,7 @@ export type ListDatasetsInput = z.infer<typeof ListDatasetsSchema>;
 export type ListAccessRulesInput = z.infer<typeof ListAccessRulesSchema>;
 export type SearchAccessRulesInput = z.infer<typeof SearchAccessRulesSchema>;
 export type DatasetStatisticsInput = z.infer<typeof DatasetStatisticsSchema>;
+export type DatasetSampleInput = z.infer<typeof DatasetSampleSchema>;
 
 // Tool definition interface for better organization
 export interface ToolDefinition {

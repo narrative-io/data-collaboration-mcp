@@ -14,7 +14,8 @@ import type {
   ListDatasetsInput,
   ListAccessRulesInput,
   SearchAccessRulesInput,
-  DatasetStatisticsInput
+  DatasetStatisticsInput,
+  DatasetSampleInput
 } from "../types/index.js";
 import { NarrativeApiClient } from "../lib/api-client.js";
 import { ToolRegistry } from "../lib/tool-registry.js";
@@ -83,6 +84,8 @@ export class ToolHandlers {
               return this.handleSearchAccessRules(validatedInput as SearchAccessRulesInput);
             case "dataset_statistics":
               return this.handleDatasetStatistics(validatedInput as DatasetStatisticsInput);
+            case "dataset_sample":
+              return this.handleDatasetSample(validatedInput as DatasetSampleInput);
             default:
               throw new McpError(
                 ErrorCode.MethodNotFound,
@@ -341,6 +344,85 @@ export class ToolHandlers {
           {
             type: "text",
             text: `Error fetching dataset statistics for ${args.dataset_id}: ${error}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  private async handleDatasetSample(args: DatasetSampleInput) {
+    try {
+      const response = await this.apiClient.fetchDatasetSample(args.dataset_id, args.size || 10);
+      
+      // Store sample as MCP resource for detailed access
+      const resourceId = `dataset-sample-${args.dataset_id}`;
+      this.resourceManager.setResource(resourceId, {
+        id: resourceId,
+        name: `Sample data for Dataset ${args.dataset_id}`,
+        content: JSON.stringify(response, null, 2),
+        description: `Sample records from dataset ${args.dataset_id}`,
+        mimeType: "application/json"
+      });
+
+      // The SDK returns ApiRecords<Record<string, string>> with records array
+      const records = response.records || [];
+      const sampleSize = records.length;
+      
+      const formattedSample = [
+        `**Dataset Sample for ${args.dataset_id}**`,
+        ``,
+        `📊 **Sample Overview:**`,
+        `- Records Retrieved: ${sampleSize}`,
+        `- Requested Size: ${args.size || 10}`,
+      ];
+
+      if (records.length > 0) {
+        // Get column names from first record
+        const columns = Object.keys(records[0]);
+        formattedSample.push(`- Columns Found: ${columns.length}`);
+        formattedSample.push(``, `📋 **Column Structure:**`);
+        formattedSample.push(columns.map(col => `- ${col}`).join('\n'));
+        
+        formattedSample.push(``, `📄 **Sample Data (first ${Math.min(3, records.length)} rows):**`);
+        
+        // Format first few records as a readable table
+        const displayRecords = records.slice(0, 3);
+        displayRecords.forEach((record: any, index: number) => {
+          formattedSample.push(``, `**Row ${index + 1}:**`);
+          Object.entries(record).forEach(([column, value]) => {
+            const displayValue = value === null || value === undefined ? 'null' : 
+                                value === '' ? '(empty)' : 
+                                String(value).length > 50 ? String(value).substring(0, 47) + '...' : 
+                                String(value);
+            formattedSample.push(`  - ${column}: ${displayValue}`);
+          });
+        });
+
+        if (records.length > 3) {
+          formattedSample.push(``, `... and ${records.length - 3} more rows`);
+        }
+      } else {
+        formattedSample.push(`- No sample records found`);
+      }
+
+      formattedSample.push(``, `📁 **Full Sample Data:**`);
+      formattedSample.push(`Resource: dataset-sample://${args.dataset_id}`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedSample.join('\n')
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error fetching dataset sample for ${args.dataset_id}: ${error}`,
           },
         ],
         isError: true,
