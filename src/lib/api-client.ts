@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { AttributeResponse, DatasetResponse, Dataset, AccessRulesResponse, AccessRule, ListAccessRulesInput, SearchAccessRulesInput } from "../types/index.js";
+import type { AttributeResponse, DatasetResponse, Dataset, AccessRulesResponse, AccessRule, ListAccessRulesInput, SearchAccessRulesInput, DatasetSampleResponse } from "../types/index.js";
 import { NarrativeSDKClient } from "./sdk-client.js";
 
 export class NarrativeApiClient {
@@ -83,6 +83,26 @@ export class NarrativeApiClient {
       return statistics;
     } catch (error) {
       throw new Error(`Failed to fetch dataset statistics for ${id}: ${error}`);
+    }
+  }
+
+  async fetchDatasetSample(id: string, size: number = 10): Promise<any> {
+    try {
+      const sdk = await this.sdkClient.getSDKInstance();
+      const datasetId = parseInt(id, 10);
+      
+      if (isNaN(datasetId)) {
+        throw new Error(`Invalid dataset ID: ${id}. Must be a number.`);
+      }
+
+      if (size < 1 || size > 100) {
+        throw new Error(`Invalid sample size: ${size}. Must be between 1 and 100.`);
+      }
+      
+      const sample = await sdk.getDatasetSample(datasetId, size);
+      return sample;
+    } catch (error) {
+      throw new Error(`Failed to fetch dataset sample for ${id}: ${error}`);
     }
   }
 
