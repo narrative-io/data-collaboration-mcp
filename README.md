@@ -16,16 +16,40 @@ bun add axios
 
 2. Configure environment variables:
 
-For development/testing:
+The server supports flexible environment variable configuration with the following precedence (highest to lowest):
+
+1. **MCP config `env` field** - Set in Claude Desktop or MCP configuration
+2. **System environment variables** - Set via shell/OS environment
+3. **`.env` file** - Local development file (gitignored)
+
+#### For Local Development
+
 ```bash
-cp .env.template .env
+cp .env.example .env
 ```
 
-Edit `.env` and add your Narrative API credentials:
-- `NARRATIVE_API_TOKEN` - Your Narrative API token
-- `NARRATIVE_API_URL` - Base URL for Narrative API endpoints (default: https://api.narrative.io)
+Then edit `.env` and add your Narrative API credentials:
 
-**Note**: When using with Claude Desktop, environment variables must be passed through the MCP configuration (see Installation section below).
+```
+NARRATIVE_API_TOKEN=your_api_token_here
+NARRATIVE_API_URL=https://api.narrative.io
+```
+
+#### For Production / Claude Desktop
+
+Set environment variables in your MCP configuration file (see Installation section below). This takes precedence over the `.env` file.
+
+#### Debug Configuration Sources
+
+To see which configuration source is being used, set the debug flag:
+
+```bash
+DEBUG=1 bun src/index.ts
+# or
+MCP_DEBUG=1 bun src/index.ts
+```
+
+This will log which configuration source provided each variable.
 
 3. Create your server code in `src/index.ts`
 
@@ -55,14 +79,20 @@ This will automatically:
 
 If you prefer to configure manually for Claude Desktop:
 
-1. Add this to your Claude Desktop configuration file:
+1. First, ensure you have the build ready:
+
+```bash
+bun run build
+```
+
+2. Add this to your Claude Desktop configuration file:
 
 ```bash
 # On macOS
 code ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```
 
-2. Add this JSON (replace with YOUR actual paths):
+3. Add this JSON (replace with YOUR actual paths and credentials):
 
 ```json
 {
@@ -78,6 +108,8 @@ code ~/Library/Application\ Support/Claude/claude_desktop_config.json
   }
 }
 ```
+
+**Important Security Note**: Environment variables in the MCP config file take precedence over `.env` files. For production environments, use system environment variables or MCP config. Never commit sensitive credentials to version control.
 
 Find your bun path with:
 ```bash
