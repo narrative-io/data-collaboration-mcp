@@ -361,6 +361,8 @@ export class ToolHandlers {
                 generateSample: args.generateSample,
                 generateStats: args.generateStats,
             });
+            // Extract dataset ID if available
+            const datasetId = response.input?.dataset?.id;
             // Store job information as a resource for tracking
             const resourceId = `nql-job-${response.id}`;
             this.resourceManager.setResource(resourceId, {
@@ -372,6 +374,7 @@ export class ToolHandlers {
                     status: response.state,
                     createdAt: response.created_at,
                     companyId: response.company_id,
+                    datasetId: datasetId,
                 }, null, 2),
                 description: `NQL query execution job`,
                 mimeType: "application/json"
@@ -383,21 +386,19 @@ export class ToolHandlers {
                 `- Job ID: ${response.id}`,
                 `- Status: ${response.state}`,
                 `- Created: ${response.created_at}`,
-                ``,
-                `📝 **Query:**`,
-                `\`\`\`sql`,
-                args.query,
-                `\`\`\``,
-                ``,
-                `⏱️ **Next Steps:**`,
-                `Your query is now running asynchronously. Use \`nql_get_results\` to retrieve results once the job completes.`,
-                ``,
-                `Example:`,
-                `- For sample data: \`nql_get_results(jobId="${response.id}", resultType="sample")\``,
-                `- For statistics: \`nql_get_results(jobId="${response.id}", resultType="statistics")\``,
-                ``,
-                `Resource: nql-job://${response.id}`,
             ];
+            // Add dataset ID if available
+            if (datasetId) {
+                formattedResponse.push(`- Dataset ID: ${datasetId}`);
+            }
+            formattedResponse.push(``, `📝 **Query:**`, `\`\`\`sql`, args.query, `\`\`\``, ``, `⏱️ **Next Steps:**`);
+            if (datasetId) {
+                formattedResponse.push(`The query created dataset ${datasetId}. You can:`, `- View sample data: \`dataset_sample(dataset_id="${datasetId}")\``, `- Get statistics: \`dataset_statistics(dataset_id="${datasetId}")\``);
+            }
+            else {
+                formattedResponse.push(`Your query is now running asynchronously. Use \`nql_get_results\` to retrieve results once the job completes.`, ``, `Example:`, `- For sample data: \`nql_get_results(jobId="${response.id}", resultType="sample")\``, `- For statistics: \`nql_get_results(jobId="${response.id}", resultType="statistics")\``);
+            }
+            formattedResponse.push(``, `Resource: nql-job://${response.id}`);
             return {
                 content: [
                     {

@@ -81,10 +81,6 @@ export class NarrativeSDKClient {
                 nql: query,
                 data_plane_id: null, // Use default data plane
             });
-            // Log the response structure for debugging
-            console.error('NQL Execute Result:', JSON.stringify(result, null, 2));
-            console.error('NQL Execute Result Keys:', Object.keys(result || {}));
-            console.error('NQL Execute Result Type:', typeof result);
             return result;
         }
         catch (error) {
@@ -112,8 +108,8 @@ export class NarrativeSDKClient {
      */
     async getJobStatus(jobId) {
         const sdk = await this.getSDKInstance();
-        const result = await sdk.getNqlByJobId(jobId);
-        return result;
+        const job = await sdk.getJob(jobId);
+        return job;
     }
     /**
      * Get the results of a completed NQL job
@@ -123,20 +119,37 @@ export class NarrativeSDKClient {
      */
     async getJobResults(jobId, resultType) {
         const sdk = await this.getSDKInstance();
-        // Get the NQL job result which includes the dataset
-        const result = await sdk.getNqlByJobId(jobId);
-        if (result.state !== 'succeeded') {
-            throw new Error(`Job ${jobId} is not completed yet. Current status: ${result.state}`);
-        }
-        // If a dataset was created, we can get sample/stats from it
-        if (result.input?.dataset?.id) {
-            if (resultType === 'sample') {
-                return await sdk.getDatasetSample(result.input.dataset.id, 100);
+        try {
+            // Get the job status using the Jobs API
+            const job = await sdk.getJob(jobId);
+            if (job.state !== 'succeeded' && job.state !== 'completed') {
+                throw new Error(`Job ${jobId} is not completed yet. Current status: ${job.state}`);
             }
-            else {
-                return await sdk.getStatistics(result.input.dataset.id);
+            // If a dataset was created, we can get sample/stats from it
+            if (job.input?.dataset?.id) {
+                if (resultType === 'sample') {
+                    return await sdk.getDatasetSample(job.input.dataset.id, 100);
+                }
+                else {
+                    return await sdk.getStatistics(job.input.dataset.id);
+                }
             }
+            return job;
         }
-        return result;
+        catch (error) {
+            // Extract detailed error information
+            const errorBody = error?.body || error?.response?.data || error?.data;
+            const detail = errorBody?.detail || errorBody?.Detail;
+            const title = errorBody?.title || errorBody?.Title;
+            const status = error?.statusCode || error?.response?.status || errorBody?.status;
+            let errorMessage = title || error?.message || 'Unknown error';
+            if (detail) {
+                errorMessage += `\n\nDetail: ${detail}`;
+            }
+            if (status) {
+                errorMessage = `[${status}] ${errorMessage}`;
+            }
+            throw new Error(errorMessage);
+        }
     }
 }
