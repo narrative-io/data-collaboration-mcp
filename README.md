@@ -42,7 +42,19 @@ This MCP server provides the following tools:
 
 - **`search_attributes`**: Search Narrative Rosetta Stone attributes with pagination
 - **`list_datasets`**: List all available datasets from the Narrative marketplace
+- **`list_access_rules`**: List access rules with filtering options
+- **`search_access_rules`**: Search access rules with query
+- **`dataset_statistics`**: Get comprehensive statistics for a dataset
+- **`dataset_sample`**: Retrieve sample records from a dataset
+- **`nql_execute`**: Execute NQL queries asynchronously
+- **`nql_get_results`**: Retrieve results from NQL query jobs
 - **`echo`**: Simple echo tool for testing
+
+## Available Prompts
+
+This MCP server provides expert guidance prompts:
+
+- **`execute-nql`**: Expert guidance for executing NQL queries on the Narrative platform. This prompt ensures queries follow all mandatory NQL syntax rules, namespace conventions, and best practices. It validates queries, enforces materialized view patterns, handles Rosetta Stone mappings, and provides post-execution guidance.
 
 ## Usage Examples
 
@@ -55,6 +67,18 @@ Search for attributes related to "demographics"
 ```
 Show me all available datasets
 ```
+
+### Use the NQL execution prompt
+```
+Use the execute-nql prompt to help me write a query that combines data from dataset 1234
+```
+
+The NQL execution prompt provides expert guidance including:
+- Validation of NQL syntax and structure
+- Enforcement of materialized view patterns
+- Proper namespace and dataset reference handling
+- Rosetta Stone integration guidance
+- Post-execution result handling
 
 ## Testing
 
