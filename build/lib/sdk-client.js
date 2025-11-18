@@ -81,6 +81,10 @@ export class NarrativeSDKClient {
                 nql: query,
                 data_plane_id: null, // Use default data plane
             });
+            // Log the response structure for debugging
+            console.error('NQL Execute Result:', JSON.stringify(result, null, 2));
+            console.error('NQL Execute Result Keys:', Object.keys(result || {}));
+            console.error('NQL Execute Result Type:', typeof result);
             return result;
         }
         catch (error) {

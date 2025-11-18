@@ -444,17 +444,16 @@ export class ToolHandlers {
       });
 
       // Store job information as a resource for tracking
-      const resourceId = `nql-job-${response.jobId}`;
+      const resourceId = `nql-job-${response.id}`;
       this.resourceManager.setResource(resourceId, {
         id: resourceId,
-        name: `NQL Job ${response.jobId}`,
+        name: `NQL Job ${response.id}`,
         content: JSON.stringify({
-          jobId: response.jobId,
-          sampleJobId: response.sampleJobId,
-          statsJobId: response.statsJobId,
+          jobId: response.id,
           query: args.query,
-          status: response.status,
-          submittedAt: new Date().toISOString(),
+          status: response.state,
+          createdAt: response.created_at,
+          companyId: response.company_id,
         }, null, 2),
         description: `NQL query execution job`,
         mimeType: "application/json"
@@ -464,19 +463,9 @@ export class ToolHandlers {
         `**NQL Query Submitted Successfully** ✓`,
         ``,
         `📋 **Job Information:**`,
-        `- Job ID: ${response.jobId}`,
-      ];
-
-      if (response.sampleJobId) {
-        formattedResponse.push(`- Sample Job ID: ${response.sampleJobId}`);
-      }
-
-      if (response.statsJobId) {
-        formattedResponse.push(`- Statistics Job ID: ${response.statsJobId}`);
-      }
-
-      formattedResponse.push(
-        `- Status: ${response.status}`,
+        `- Job ID: ${response.id}`,
+        `- Status: ${response.state}`,
+        `- Created: ${response.created_at}`,
         ``,
         `📝 **Query:**`,
         `\`\`\`sql`,
@@ -487,11 +476,11 @@ export class ToolHandlers {
         `Your query is now running asynchronously. Use \`nql_get_results\` to retrieve results once the job completes.`,
         ``,
         `Example:`,
-        `- For sample data: \`nql_get_results(jobId="${response.jobId}", resultType="sample")\``,
-        `- For statistics: \`nql_get_results(jobId="${response.jobId}", resultType="statistics")\``,
+        `- For sample data: \`nql_get_results(jobId="${response.id}", resultType="sample")\``,
+        `- For statistics: \`nql_get_results(jobId="${response.id}", resultType="statistics")\``,
         ``,
-        `Resource: nql-job://${response.jobId}`
-      );
+        `Resource: nql-job://${response.id}`,
+      ];
 
       return {
         content: [
