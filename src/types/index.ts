@@ -115,6 +115,33 @@ export interface AccessRulesResponse {
   };
 }
 
+// NQL Execution types
+export interface NqlJob {
+  id: string;
+  query: string;
+  status: 'submitted' | 'running' | 'completed' | 'failed';
+  created_at: string;
+  updated_at?: string;
+  sampleJobId?: string;
+  statsJobId?: string;
+  error?: string;
+}
+
+export interface NqlExecuteResponse {
+  jobId: string;
+  sampleJobId?: string;
+  statsJobId?: string;
+  status: 'submitted';
+}
+
+export interface NqlJobResults {
+  jobId: string;
+  status: string;
+  resultType: 'sample' | 'statistics';
+  data?: any;
+  error?: string;
+}
+
 // Zod schemas for tool input validation
 export const EchoToolSchema = z.object({
   message: z.string().min(1, "Message cannot be empty"),
@@ -160,6 +187,18 @@ export const DatasetSampleSchema = z.object({
   size: z.number().int().positive().max(100).default(10).optional(),
 });
 
+// NQL Command Execution Schemas
+export const NqlExecuteSchema = z.object({
+  query: z.string().trim().min(1, "NQL query cannot be empty"),
+  generateSample: z.boolean().default(true).optional(),
+  generateStats: z.boolean().default(true).optional(),
+});
+
+export const NqlGetResultsSchema = z.object({
+  jobId: z.string().trim().min(1, "Job ID cannot be empty"),
+  resultType: z.enum(["sample", "statistics"]),
+});
+
 // Type exports from schemas
 export type EchoToolInput = z.infer<typeof EchoToolSchema>;
 export type SearchAttributesInput = z.infer<typeof SearchAttributesSchema>;
@@ -168,6 +207,8 @@ export type ListAccessRulesInput = z.infer<typeof ListAccessRulesSchema>;
 export type SearchAccessRulesInput = z.infer<typeof SearchAccessRulesSchema>;
 export type DatasetStatisticsInput = z.infer<typeof DatasetStatisticsSchema>;
 export type DatasetSampleInput = z.infer<typeof DatasetSampleSchema>;
+export type NqlExecuteInput = z.infer<typeof NqlExecuteSchema>;
+export type NqlGetResultsInput = z.infer<typeof NqlGetResultsSchema>;
 
 // Tool definition interface for better organization
 export interface ToolDefinition {

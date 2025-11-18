@@ -190,4 +190,42 @@ export class NarrativeApiClient {
       throw new Error(`Failed to fetch access rule ${id}: ${error}`);
     }
   }
+
+  /**
+   * NQL Execution Methods
+   */
+
+  async executeNql(
+    query: string,
+    options?: {
+      generateSample?: boolean;
+      generateStats?: boolean;
+    }
+  ): Promise<any> {
+    try {
+      const result = await this.sdkClient.executeNql(query, options);
+      return result;
+    } catch (error: any) {
+      // Pass through the error from sdk-client which already has formatted details
+      throw error;
+    }
+  }
+
+  async getJobStatus(jobId: string): Promise<any> {
+    try {
+      const status = await this.sdkClient.getJobStatus(jobId);
+      return status;
+    } catch (error) {
+      throw new Error(`Failed to get job status for ${jobId}: ${error}`);
+    }
+  }
+
+  async getJobResults(jobId: string, resultType: 'sample' | 'statistics'): Promise<any> {
+    try {
+      const results = await this.sdkClient.getJobResults(jobId, resultType);
+      return results;
+    } catch (error) {
+      throw new Error(`Failed to get job results for ${jobId}: ${error}`);
+    }
+  }
 }

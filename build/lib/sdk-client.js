@@ -20,10 +20,19 @@ export class NarrativeSDKClient {
         }
         try {
             const { NarrativeApi } = await import('@narrative.io/data-collaboration-sdk-ts');
-            this.sdkInstance = new NarrativeApi({
-                apiKey: this.apiToken,
-                environment: this.apiUrl.includes('dev') ? 'dev' : 'prod'
-            });
+            // Temporarily suppress console.log to prevent SDK banner from interfering with MCP JSON-RPC
+            const originalConsoleLog = console.log;
+            console.log = () => { }; // Suppress all console.log output
+            try {
+                this.sdkInstance = new NarrativeApi({
+                    apiKey: this.apiToken,
+                    environment: this.apiUrl.includes('dev') ? 'dev' : 'prod'
+                });
+            }
+            finally {
+                // Always restore console.log
+                console.log = originalConsoleLog;
+            }
         }
         catch (error) {
             console.error('Failed to initialize Narrative SDK:', error);
@@ -54,5 +63,93 @@ export class NarrativeSDKClient {
     async searchAttributes(query) {
         await this.initializeSDK();
         return await this.sdkInstance.attribute.getAttributes({ query });
+    }
+    /**
+     * NQL Execution Methods
+     */
+    /**
+     * Execute an NQL query asynchronously
+     * @param query - The NQL query string to execute
+     * @param options - Optional settings for sample and statistics generation
+     * @returns Job information including job IDs for tracking
+     */
+    async executeNql(query, options) {
+        const sdk = await this.getSDKInstance();
+        try {
+            // Use the SDK's NQL execution method with correct parameters
+            const result = await sdk.executeNql({
+                nql: query,
+                data_plane_id: null, // Use default data plane
+            });
+            return result;
+        }
+        catch (error) {
+            // Extract detailed error information from Narrative API response
+            // The mande library structures errors differently
+            const errorBody = error?.body || error?.response?.data || error?.data;
+            const detail = errorBody?.detail || errorBody?.Detail;
+            const title = errorBody?.title || errorBody?.Title;
+            const status = error?.statusCode || error?.response?.status || errorBody?.status;
+            // Build a helpful error message
+            let errorMessage = title || error?.message || 'Unknown error';
+            if (detail) {
+                errorMessage += `\n\nDetail: ${detail}`;
+            }
+            if (status) {
+                errorMessage = `[${status}] ${errorMessage}`;
+            }
+            throw new Error(errorMessage);
+        }
+    }
+    /**
+     * Get the status of an NQL job
+     * @param jobId - The job ID to check
+     * @returns Job status information
+     */
+    async getJobStatus(jobId) {
+        const sdk = await this.getSDKInstance();
+        const job = await sdk.getJob(jobId);
+        return job;
+    }
+    /**
+     * Get the results of a completed NQL job
+     * @param jobId - The job ID to retrieve results from
+     * @param resultType - Type of results to retrieve (sample or statistics)
+     * @returns Job results data
+     */
+    async getJobResults(jobId, resultType) {
+        const sdk = await this.getSDKInstance();
+        try {
+            // Get the job status using the Jobs API
+            const job = await sdk.getJob(jobId);
+            if (job.state !== 'succeeded' && job.state !== 'completed') {
+                throw new Error(`Job ${jobId} is not completed yet. Current status: ${job.state}`);
+            }
+            // If a dataset was created, we can get sample/stats from it
+            if (job.input?.dataset?.id) {
+                if (resultType === 'sample') {
+                    return await sdk.getDatasetSample(job.input.dataset.id, 100);
+                }
+                else {
+                    return await sdk.getStatistics(job.input.dataset.id);
+                }
+            }
+            return job;
+        }
+        catch (error) {
+            // Extract detailed error information
+            const errorBody = error?.body || error?.response?.data || error?.data;
+            const detail = errorBody?.detail || errorBody?.Detail;
+            const title = errorBody?.title || errorBody?.Title;
+            const status = error?.statusCode || error?.response?.status || errorBody?.status;
+            let errorMessage = title || error?.message || 'Unknown error';
+            if (detail) {
+                errorMessage += `\n\nDetail: ${detail}`;
+            }
+            if (status) {
+                errorMessage = `[${status}] ${errorMessage}`;
+            }
+            throw new Error(errorMessage);
+        }
     }
 }

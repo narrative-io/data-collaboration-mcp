@@ -1,11 +1,12 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "ts_mcp",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.8.0",
-        "@narrative.io/data-collaboration-sdk-ts": "^2.58.0",
+        "@narrative.io/data-collaboration-sdk-ts": "^2.85.0",
         "axios": "^1.8.4",
         "dotenv": "^16.4.7",
         "zod": "^4.0.5",
@@ -21,7 +22,7 @@
   "packages": {
     "@modelcontextprotocol/sdk": ["@modelcontextprotocol/sdk@1.8.0", "", { "dependencies": { "content-type": "^1.0.5", "cors": "^2.8.5", "cross-spawn": "^7.0.3", "eventsource": "^3.0.2", "express": "^5.0.1", "express-rate-limit": "^7.5.0", "pkce-challenge": "^4.1.0", "raw-body": "^3.0.0", "zod": "^3.23.8", "zod-to-json-schema": "^3.24.1" } }, "sha512-e06W7SwrontJDHwCawNO5SGxG+nU9AAx+jpHHZqGl/WrDBdWOpvirC+s58VpJTB5QemI4jTRcjWT4Pt3Q1NPQQ=="],
 
-    "@narrative.io/data-collaboration-sdk-ts": ["@narrative.io/data-collaboration-sdk-ts@2.58.0", "", { "dependencies": { "bignumber.js": "9.3.1", "mande": "2.0.9", "zod": "4.0.8" } }, "sha512-Zq941EOXE+sxGNj/kXZ0QHRXpQrwzD4B4sl/yBQrK91//dakITxIqmPQVwKvH9y7BpOpTN++4CLOcI4Mqn6EJw=="],
+    "@narrative.io/data-collaboration-sdk-ts": ["@narrative.io/data-collaboration-sdk-ts@2.85.0", "", { "dependencies": { "bignumber.js": "9.3.1", "mande": "2.0.9", "zod": "4.1.12" } }, "sha512-vUUFadirSiOzt1IjCFprFnP+zaYrSwGQ36OWogvMZMTvtjAOYwXgUPG2hE6hr7bY0T5zFRjWC+Lsm9jX/QaO6A=="],
 
     "@types/node": ["@types/node@22.14.0", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-Kmpl+z84ILoG+3T/zQFyAJsU6EPTmOCj8/2+83fSN6djd6I4o7uOuGIH6vq3PrjY5BGitSbFuMN18j3iknubbA=="],
 
@@ -215,7 +216,7 @@
 
     "@modelcontextprotocol/sdk/zod": ["zod@3.24.2", "", {}, "sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ=="],
 
-    "@narrative.io/data-collaboration-sdk-ts/zod": ["zod@4.0.8", "", {}, "sha512-+MSh9cZU9r3QKlHqrgHMTSr3QwMGv4PLfR0M4N/sYWV5/x67HgXEhIGObdBkpnX8G78pTgWnIrBL2lZcNJOtfg=="],
+    "@narrative.io/data-collaboration-sdk-ts/zod": ["zod@4.1.12", "", {}, "sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ=="],
 
     "form-data/mime-types": ["mime-types@2.1.35", "", { "dependencies": { "mime-db": "1.52.0" } }, "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw=="],
 
