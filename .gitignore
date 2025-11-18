@@ -137,3 +137,6 @@ dist
 
 # SDK that is git submoduled
 sdk/*
+
+# MCP servers (contains API keys)
+.mcp.json
