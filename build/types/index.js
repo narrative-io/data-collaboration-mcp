@@ -33,6 +33,20 @@ export const SearchAccessRulesSchema = z.object({
 export const DatasetStatisticsSchema = z.object({
     dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
 });
+export const DatasetSampleSchema = z.object({
+    dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
+    size: z.number().int().positive().max(100).default(10).optional(),
+});
+// NQL Command Execution Schemas
+export const NqlExecuteSchema = z.object({
+    query: z.string().trim().min(1, "NQL query cannot be empty"),
+    generateSample: z.boolean().default(true).optional(),
+    generateStats: z.boolean().default(true).optional(),
+});
+export const NqlGetResultsSchema = z.object({
+    jobId: z.string().trim().min(1, "Job ID cannot be empty"),
+    resultType: z.enum(["sample", "statistics"]),
+});
 // Enhanced error types
 export class ToolValidationError extends Error {
     toolName;

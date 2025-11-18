@@ -181,6 +181,73 @@ export class ToolRegistry {
                 required: ["dataset_id"],
             },
         },
+        dataset_sample: {
+            name: "dataset_sample",
+            description: "Retrieve sample records from a dataset for data preview and schema understanding",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    dataset_id: {
+                        type: "string",
+                        description: "The ID of the dataset to get sample data from",
+                        minLength: 1,
+                    },
+                    size: {
+                        type: "number",
+                        description: "Number of sample records to retrieve (default: 10, max: 100)",
+                        minimum: 1,
+                        maximum: 100,
+                        default: 10,
+                    },
+                },
+                required: ["dataset_id"],
+            },
+        },
+        nql_execute: {
+            name: "nql_execute",
+            description: "Execute an NQL (Narrative Query Language) query asynchronously. Returns job IDs for tracking execution. The query will run in the background and results can be retrieved using nql_get_results once the job completes.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "string",
+                        description: "The NQL query to execute (e.g., 'SELECT * FROM dataset_12345 LIMIT 10')",
+                        minLength: 1,
+                    },
+                    generateSample: {
+                        type: "boolean",
+                        description: "Whether to generate sample data from query results (default: true)",
+                        default: true,
+                    },
+                    generateStats: {
+                        type: "boolean",
+                        description: "Whether to generate statistics from query results (default: true)",
+                        default: true,
+                    },
+                },
+                required: ["query"],
+            },
+        },
+        nql_get_results: {
+            name: "nql_get_results",
+            description: "Retrieve results from a completed NQL query job. Use this after executing an NQL query with nql_execute to get the sample data or statistics.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    jobId: {
+                        type: "string",
+                        description: "The job ID returned from nql_execute",
+                        minLength: 1,
+                    },
+                    resultType: {
+                        type: "string",
+                        description: "Type of results to retrieve",
+                        enum: ["sample", "statistics"],
+                    },
+                },
+                required: ["jobId", "resultType"],
+            },
+        },
     };
     /**
      * Get all tool definitions for the tools/list endpoint
@@ -262,6 +329,37 @@ export class ToolRegistry {
         return DatasetStatisticsSchema.parse(input);
     }
     /**
+     * Validate input for dataset_sample tool using Zod schema
+     */
+    static validateDatasetSampleInput(input) {
+        const DatasetSampleSchema = z.object({
+            dataset_id: z.string().min(1, "Dataset ID cannot be empty"),
+            size: z.number().int().positive().max(100).default(10).optional(),
+        });
+        return DatasetSampleSchema.parse(input);
+    }
+    /**
+     * Validate input for nql_execute tool using Zod schema
+     */
+    static validateNqlExecuteInput(input) {
+        const NqlExecuteSchema = z.object({
+            query: z.string().trim().min(1, "NQL query cannot be empty"),
+            generateSample: z.boolean().default(true).optional(),
+            generateStats: z.boolean().default(true).optional(),
+        });
+        return NqlExecuteSchema.parse(input);
+    }
+    /**
+     * Validate input for nql_get_results tool using Zod schema
+     */
+    static validateNqlGetResultsInput(input) {
+        const NqlGetResultsSchema = z.object({
+            jobId: z.string().trim().min(1, "Job ID cannot be empty"),
+            resultType: z.enum(["sample", "statistics"]),
+        });
+        return NqlGetResultsSchema.parse(input);
+    }
+    /**
      * Generic validation method that routes to the appropriate validator
      */
     static validateToolInput(toolName, input) {
@@ -278,6 +376,12 @@ export class ToolRegistry {
                 return this.validateSearchAccessRulesInput(input);
             case "dataset_statistics":
                 return this.validateDatasetStatisticsInput(input);
+            case "dataset_sample":
+                return this.validateDatasetSampleInput(input);
+            case "nql_execute":
+                return this.validateNqlExecuteInput(input);
+            case "nql_get_results":
+                return this.validateNqlGetResultsInput(input);
             default:
                 throw new Error(`Unknown tool: ${toolName}`);
         }

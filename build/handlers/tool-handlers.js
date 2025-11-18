@@ -50,6 +50,12 @@ export class ToolHandlers {
                         return this.handleSearchAccessRules(validatedInput);
                     case "dataset_statistics":
                         return this.handleDatasetStatistics(validatedInput);
+                    case "dataset_sample":
+                        return this.handleDatasetSample(validatedInput);
+                    case "nql_execute":
+                        return this.handleNqlExecute(validatedInput);
+                    case "nql_get_results":
+                        return this.handleNqlGetResults(validatedInput);
                     default:
                         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${request.params.name}`);
                 }
@@ -272,6 +278,208 @@ export class ToolHandlers {
                     {
                         type: "text",
                         text: `Error fetching dataset statistics for ${args.dataset_id}: ${error}`,
+                    },
+                ],
+                isError: true,
+            };
+        }
+    }
+    async handleDatasetSample(args) {
+        try {
+            const response = await this.apiClient.fetchDatasetSample(args.dataset_id, args.size || 10);
+            // Store sample as MCP resource for detailed access
+            const resourceId = `dataset-sample-${args.dataset_id}`;
+            this.resourceManager.setResource(resourceId, {
+                id: resourceId,
+                name: `Sample data for Dataset ${args.dataset_id}`,
+                content: JSON.stringify(response, null, 2),
+                description: `Sample records from dataset ${args.dataset_id}`,
+                mimeType: "application/json"
+            });
+            // The SDK returns ApiRecords<Record<string, string>> with records array
+            const records = response.records || [];
+            const sampleSize = records.length;
+            const formattedSample = [
+                `**Dataset Sample for ${args.dataset_id}**`,
+                ``,
+                `📊 **Sample Overview:**`,
+                `- Records Retrieved: ${sampleSize}`,
+                `- Requested Size: ${args.size || 10}`,
+            ];
+            if (records.length > 0) {
+                // Get column names from first record
+                const columns = Object.keys(records[0]);
+                formattedSample.push(`- Columns Found: ${columns.length}`);
+                formattedSample.push(``, `📋 **Column Structure:**`);
+                formattedSample.push(columns.map(col => `- ${col}`).join('\n'));
+                formattedSample.push(``, `📄 **Sample Data (first ${Math.min(3, records.length)} rows):**`);
+                // Format first few records as a readable table
+                const displayRecords = records.slice(0, 3);
+                displayRecords.forEach((record, index) => {
+                    formattedSample.push(``, `**Row ${index + 1}:**`);
+                    Object.entries(record).forEach(([column, value]) => {
+                        const displayValue = value === null || value === undefined ? 'null' :
+                            value === '' ? '(empty)' :
+                                String(value).length > 50 ? String(value).substring(0, 47) + '...' :
+                                    String(value);
+                        formattedSample.push(`  - ${column}: ${displayValue}`);
+                    });
+                });
+                if (records.length > 3) {
+                    formattedSample.push(``, `... and ${records.length - 3} more rows`);
+                }
+            }
+            else {
+                formattedSample.push(`- No sample records found`);
+            }
+            formattedSample.push(``, `📁 **Full Sample Data:**`);
+            formattedSample.push(`Resource: dataset-sample://${args.dataset_id}`);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: formattedSample.join('\n')
+                    },
+                ],
+            };
+        }
+        catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error fetching dataset sample for ${args.dataset_id}: ${error}`,
+                    },
+                ],
+                isError: true,
+            };
+        }
+    }
+    async handleNqlExecute(args) {
+        try {
+            const response = await this.apiClient.executeNql(args.query, {
+                generateSample: args.generateSample,
+                generateStats: args.generateStats,
+            });
+            // Store job information as a resource for tracking
+            const resourceId = `nql-job-${response.jobId}`;
+            this.resourceManager.setResource(resourceId, {
+                id: resourceId,
+                name: `NQL Job ${response.jobId}`,
+                content: JSON.stringify({
+                    jobId: response.jobId,
+                    sampleJobId: response.sampleJobId,
+                    statsJobId: response.statsJobId,
+                    query: args.query,
+                    status: response.status,
+                    submittedAt: new Date().toISOString(),
+                }, null, 2),
+                description: `NQL query execution job`,
+                mimeType: "application/json"
+            });
+            const formattedResponse = [
+                `**NQL Query Submitted Successfully** ✓`,
+                ``,
+                `📋 **Job Information:**`,
+                `- Job ID: ${response.jobId}`,
+            ];
+            if (response.sampleJobId) {
+                formattedResponse.push(`- Sample Job ID: ${response.sampleJobId}`);
+            }
+            if (response.statsJobId) {
+                formattedResponse.push(`- Statistics Job ID: ${response.statsJobId}`);
+            }
+            formattedResponse.push(`- Status: ${response.status}`, ``, `📝 **Query:**`, `\`\`\`sql`, args.query, `\`\`\``, ``, `⏱️ **Next Steps:**`, `Your query is now running asynchronously. Use \`nql_get_results\` to retrieve results once the job completes.`, ``, `Example:`, `- For sample data: \`nql_get_results(jobId="${response.jobId}", resultType="sample")\``, `- For statistics: \`nql_get_results(jobId="${response.jobId}", resultType="statistics")\``, ``, `Resource: nql-job://${response.jobId}`);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: formattedResponse.join('\n')
+                    },
+                ],
+            };
+        }
+        catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error executing NQL query: ${error}`,
+                    },
+                ],
+                isError: true,
+            };
+        }
+    }
+    async handleNqlGetResults(args) {
+        try {
+            const results = await this.apiClient.getJobResults(args.jobId, args.resultType);
+            // Store results as a resource for detailed access
+            const resourceId = `nql-results-${args.jobId}-${args.resultType}`;
+            this.resourceManager.setResource(resourceId, {
+                id: resourceId,
+                name: `NQL ${args.resultType} results for job ${args.jobId}`,
+                content: JSON.stringify(results, null, 2),
+                description: `Results from NQL job ${args.jobId}`,
+                mimeType: "application/json"
+            });
+            const formattedResults = [
+                `**NQL Job Results** ✓`,
+                ``,
+                `📋 **Job Information:**`,
+                `- Job ID: ${args.jobId}`,
+                `- Result Type: ${args.resultType}`,
+                ``,
+            ];
+            if (args.resultType === 'sample') {
+                // Format sample results
+                const records = results.data || results.records || [];
+                formattedResults.push(`📊 **Sample Data:**`, `- Records: ${records.length}`, ``);
+                if (records.length > 0) {
+                    const columns = Object.keys(records[0]);
+                    formattedResults.push(`📋 **Columns (${columns.length}):**`);
+                    formattedResults.push(columns.map((col) => `- ${col}`).join('\n'));
+                    formattedResults.push(``);
+                    formattedResults.push(`📄 **Preview (first ${Math.min(3, records.length)} rows):**`);
+                    records.slice(0, 3).forEach((record, index) => {
+                        formattedResults.push(``, `**Row ${index + 1}:**`);
+                        Object.entries(record).forEach(([column, value]) => {
+                            const displayValue = value === null || value === undefined ? 'null' :
+                                value === '' ? '(empty)' :
+                                    String(value).length > 50 ? String(value).substring(0, 47) + '...' :
+                                        String(value);
+                            formattedResults.push(`  - ${column}: ${displayValue}`);
+                        });
+                    });
+                    if (records.length > 3) {
+                        formattedResults.push(``, `... and ${records.length - 3} more rows`);
+                    }
+                }
+                else {
+                    formattedResults.push(`No sample records found.`);
+                }
+            }
+            else {
+                // Format statistics results
+                formattedResults.push(`📊 **Statistics:**`);
+                formattedResults.push(JSON.stringify(results.data || results, null, 2));
+            }
+            formattedResults.push(``, `📁 **Full Results:**`, `Resource: nql-results://${args.jobId}/${args.resultType}`);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: formattedResults.join('\n')
+                    },
+                ],
+            };
+        }
+        catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error retrieving NQL job results: ${error}`,
                     },
                 ],
                 isError: true,
