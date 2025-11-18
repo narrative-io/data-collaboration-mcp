@@ -6,115 +6,35 @@ Learn more about Narrative: https://www.narrative.io/
 
 ## Setup
 
-1. Install dependencies:
+To use this MCP server, you need to configure it in your MCP settings file (eg `.cursor/mcp.json` for Cursor or `claude_desktop_config.json` for Claude Desktop).
 
-```bash
-bun install @modelcontextprotocol/sdk dotenv
-bun add -D typescript @types/node
-bun add axios
-```
-
-2. Configure environment variables:
-
-The server supports flexible environment variable configuration with the following precedence (highest to lowest):
-
-1. **MCP config `env` field** - Set in Claude Desktop or MCP configuration
-2. **System environment variables** - Set via shell/OS environment
-3. **`.env` file** - Local development file (gitignored)
-
-#### For Local Development
-
-```bash
-cp .env.example .env
-```
-
-Then edit `.env` and add your Narrative API credentials:
-
-```
-NARRATIVE_API_TOKEN=your_api_token_here
-NARRATIVE_API_URL=https://api.narrative.io
-```
-
-#### For Production / Claude Desktop
-
-Set environment variables in your MCP configuration file (see Installation section below). This takes precedence over the `.env` file.
-
-#### Debug Configuration Sources
-
-To see which configuration source is being used, set the debug flag:
-
-```bash
-DEBUG=1 bun src/index.ts
-# or
-MCP_DEBUG=1 bun src/index.ts
-```
-
-This will log which configuration source provided each variable.
-
-3. Create your server code in `src/index.ts`
-
-4. Run your server:
-
-```bash
-bun src/index.ts
-```
-
-## Installation
-
-### For Claude Code Users 
-
-The easiest way to install this MCP server is using Claude Code:
-
-```bash
-claude mcp install https://github.com/narrative-io/nio_mcp.git
-```
-
-This will automatically:
-- Clone the repository 
-- Install dependencies
-- Set up the MCP server configuration
-- Make it available in your Claude Code sessions
-
-### Manual Installation for Claude Desktop
-
-If you prefer to configure manually for Claude Desktop:
-
-1. First, ensure you have the build ready:
-
-```bash
-bun run build
-```
-
-2. Add this to your Claude Desktop configuration file:
-
-```bash
-# On macOS
-code ~/Library/Application\ Support/Claude/claude_desktop_config.json
-```
-
-3. Add this JSON (replace with YOUR actual paths and credentials):
+Add the following configuration to your `mcp.json` file:
 
 ```json
 {
-  "mcpServers": {
-    "narrative-mcp": {
-      "command": "/full/path/to/bun",
-      "args": ["/full/path/to/your/project/build/index.js"],
-      "env": {
-        "NARRATIVE_API_URL": "https://api.narrative.io",
-        "NARRATIVE_API_TOKEN": "your_api_token_here"
-      }
+    "mcpServers": {
+        "narrative": {
+            "command": "bun",
+            "args": [
+                "--cwd",
+                "<FULL_PATH_TO>/data-collaboration-mcp",
+                "dev"
+            ],
+            "env": {
+                "NARRATIVE_API_URL": "https://api.narrative.io",
+                "NARRATIVE_API_TOKEN": "<YOUR_API_TOKEN>"
+            }
+        }
     }
-  }
 }
 ```
 
-**Important Security Note**: Environment variables in the MCP config file take precedence over `.env` files. For production environments, use system environment variables or MCP config. Never commit sensitive credentials to version control.
+**Important:** 
+- Replace `<YOUR_API_TOKEN>` with your actual Narrative API token (required)
+- Update the path in the `--cwd` argument to point to your local installation of this repository
+- Get your Narrative API token from your Narrative account settings at https://www.narrative.io/
 
-Find your bun path with:
-```bash
-which bun
-```
+After updating your MCP configuration, restart your editor or MCP client for the changes to take effect.
 
 ## Available Tools
 
@@ -145,26 +65,22 @@ bun run test
 
 ## Verification
 
-### For Claude Code
-After installation, you can verify the server is working by asking Claude to:
-- "List all available datasets"
-- "Search for attributes related to location"
-
-### For Claude Desktop
-1. Restart Claude Desktop
-2. Click the "+" button in Claude's input box
-3. Your server's tools should appear in the list
+After configuring the MCP server and restarting your editor, verify it's working by:
+- Asking your AI assistant to "List all available datasets"
+- Asking it to "Search for attributes related to location"
+- The Narrative tools should appear in the available MCP tools list
 
 ## Troubleshooting
 
-### Claude Code
-Check MCP server status:
+Check MCP server logs if you encounter issues:
+
+**For Cursor:**
 ```bash
-claude mcp list
+# Check Cursor logs for MCP server errors
+tail -f ~/Library/Logs/Cursor/logs/*.log
 ```
 
-### Claude Desktop
-Check logs:
+**For Claude Desktop:**
 ```bash
 tail -f ~/Library/Logs/Claude/mcp*.log
 ```
