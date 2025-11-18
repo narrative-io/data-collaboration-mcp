@@ -140,3 +140,4 @@ sdk/*
 
 # MCP servers (contains API keys)
 .mcp.json
+*mcp.json
