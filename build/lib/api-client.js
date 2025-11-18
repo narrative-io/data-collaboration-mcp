@@ -173,7 +173,8 @@ export class NarrativeApiClient {
             return result;
         }
         catch (error) {
-            throw new Error(`Failed to execute NQL query: ${error}`);
+            // Pass through the error from sdk-client which already has formatted details
+            throw error;
         }
     }
     async getJobStatus(jobId) {
