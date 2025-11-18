@@ -6,7 +6,7 @@ Learn more about Narrative: https://www.narrative.io/
 
 ## Setup
 
-To use this MCP server, you need to configure it in your MCP settings file (`.cursor/mcp.json` for Cursor or `claude_desktop_config.json` for Claude Desktop).
+To use this MCP server, you need to configure it in your MCP settings file (eg `.cursor/mcp.json` for Cursor or `claude_desktop_config.json` for Claude Desktop).
 
 Add the following configuration to your `mcp.json` file:
 
