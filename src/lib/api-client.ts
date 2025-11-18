@@ -205,8 +205,9 @@ export class NarrativeApiClient {
     try {
       const result = await this.sdkClient.executeNql(query, options);
       return result;
-    } catch (error) {
-      throw new Error(`Failed to execute NQL query: ${error}`);
+    } catch (error: any) {
+      // Pass through the error from sdk-client which already has formatted details
+      throw error;
     }
   }
 

@@ -82,56 +82,82 @@ export class NarrativeSDKClient {
    * @param options - Optional settings for sample and statistics generation
    * @returns Job information including job IDs for tracking
    */
-  async executeNql(
-    query: string,
-    options?: {
-      generateSample?: boolean;
-      generateStats?: boolean;
-    }
-  ): Promise<any> {
-    const sdk = await this.getSDKInstance();
-    
-    // Use the SDK's NQL execution method
-    // The SDK should handle job creation and return job IDs
-    const result = await sdk.nql.execute(query, {
-      generateSample: options?.generateSample ?? true,
-      generateStatistics: options?.generateStats ?? true,
+async executeNql(
+  query: string,
+  options?: {
+    generateSample?: boolean;
+    generateStats?: boolean;
+  }
+): Promise<any> {
+  const sdk = await this.getSDKInstance();
+  
+  try {
+    // Use the SDK's NQL execution method with correct parameters
+    const result = await sdk.executeNql({
+      nql: query,
+      data_plane_id: null,  // Use default data plane
     });
     
     return result;
+  } catch (error: any) {
+    // Extract detailed error information from Narrative API response
+    // The mande library structures errors differently
+    const errorBody = error?.body || error?.response?.data || error?.data;
+    const detail = errorBody?.detail || errorBody?.Detail;
+    const title = errorBody?.title || errorBody?.Title;
+    const status = error?.statusCode || error?.response?.status || errorBody?.status;
+    
+    // Build a helpful error message
+    let errorMessage = title || error?.message || 'Unknown error';
+    if (detail) {
+      errorMessage += `\n\nDetail: ${detail}`;
+    }
+    if (status) {
+      errorMessage = `[${status}] ${errorMessage}`;
+    }
+    
+    throw new Error(errorMessage);
   }
+}
 
   /**
-   * Get the status of a job
+   * Get the status of an NQL job
    * @param jobId - The job ID to check
    * @returns Job status information
    */
   async getJobStatus(jobId: string): Promise<any> {
     const sdk = await this.getSDKInstance();
     
-    const status = await sdk.jobs.getStatus(jobId);
+    const result = await sdk.getNqlByJobId(jobId);
     
-    return status;
+    return result;
   }
 
   /**
-   * Get the results of a completed job
+   * Get the results of a completed NQL job
    * @param jobId - The job ID to retrieve results from
    * @param resultType - Type of results to retrieve (sample or statistics)
    * @returns Job results data
    */
   async getJobResults(jobId: string, resultType: 'sample' | 'statistics'): Promise<any> {
-    // First check if the job is complete
-    const status = await this.getJobStatus(jobId);
+    const sdk = await this.getSDKInstance();
     
-    if (status.status !== 'completed') {
-      throw new Error(`Job ${jobId} is not completed yet. Current status: ${status.status}`);
+    // Get the NQL job result which includes the dataset
+    const result = await sdk.getNqlByJobId(jobId);
+    
+    if (result.state !== 'succeeded') {
+      throw new Error(`Job ${jobId} is not completed yet. Current status: ${result.state}`);
     }
     
-    // Retrieve the appropriate results based on type
-    const sdk = await this.getSDKInstance();
-    const results = await sdk.jobs.getResults(jobId, resultType);
+    // If a dataset was created, we can get sample/stats from it
+    if (result.input?.dataset?.id) {
+      if (resultType === 'sample') {
+        return await sdk.getDatasetSample(result.input.dataset.id, 100);
+      } else {
+        return await sdk.getStatistics(result.input.dataset.id);
+      }
+    }
     
-    return results;
+    return result;
   }
 }
