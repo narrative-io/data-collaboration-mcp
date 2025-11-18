@@ -6,6 +6,7 @@ import { config, validateEnvironmentVariables } from "./lib/config.js";
 import { NarrativeApiClient } from "./lib/api-client.js";
 import { ToolHandlers } from "./handlers/tool-handlers.js";
 import { ResourceHandlers } from "./handlers/resource-handlers.js";
+import { PromptHandlers } from "./handlers/prompt-handlers.js";
 
 // Export for testing
 export { validateEnvironmentVariables };
@@ -26,6 +27,7 @@ class MyMcpServer {
   private apiClient: NarrativeApiClient;
   private toolHandlers: ToolHandlers;
   private resourceHandlers: ResourceHandlers;
+  private promptHandlers: PromptHandlers;
 
   constructor() {
     try {
@@ -51,16 +53,21 @@ class MyMcpServer {
             // Support for tool execution
             listChanged: true,
           },
+          prompts: {
+            // Support for prompts
+            listChanged: true,
+          },
           logging: {
             // Support for logging messages
           },
         },
-        instructions: "Narrative MCP Server provides access to Narrative's data marketplace APIs. Available tools: echo (test), search_attributes (search Rosetta Stone), list_datasets (list available datasets), list_access_rules (list access rules with filtering), search_access_rules (search access rules), dataset_statistics (get dataset statistics), dataset_sample (get dataset samples), nql_execute (execute NQL queries asynchronously), nql_get_results (retrieve NQL query results). Resources are created dynamically when tools are used.",
+        instructions: "Narrative MCP Server provides access to Narrative's data marketplace APIs. Available tools: echo (test), search_attributes (search Rosetta Stone), list_datasets (list available datasets), list_access_rules (list access rules with filtering), search_access_rules (search access rules), dataset_statistics (get dataset statistics), dataset_sample (get dataset samples), nql_execute (execute NQL queries asynchronously), nql_get_results (retrieve NQL query results). Prompts: execute-nql (expert guidance for NQL query execution). Resources are created dynamically when tools are used.",
       }
     );
 
     this.toolHandlers = new ToolHandlers(this.server, this.apiClient, resources);
     this.resourceHandlers = new ResourceHandlers(this.server, () => this.toolHandlers.getResourceManager(), this.apiClient);
+    this.promptHandlers = new PromptHandlers(this.server);
 
     this.setupHandlers();
     this.setupErrorHandling();
@@ -69,6 +76,7 @@ class MyMcpServer {
   private setupHandlers(): void {
     this.resourceHandlers.setup();
     this.toolHandlers.setup();
+    this.promptHandlers.setup();
   }
 
   private setupErrorHandling(): void {
