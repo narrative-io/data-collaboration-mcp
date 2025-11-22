@@ -17,7 +17,7 @@
     "zod": "^4.0.5"
   },
   "scripts": {
-    "build": "tsc --outDir build",
+    "build": "tsc --outDir build && cp -r resources build/",
     "start": "bun build/index.js",
     "dev": "bun --watch src/index.ts",
     "test": "bun test tests/",
