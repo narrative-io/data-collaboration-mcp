@@ -1,6 +1,7 @@
 // src/index.ts
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SetLevelRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import type { StoredResource } from "./types/index.js";
 import { config, validateEnvironmentVariables } from "./lib/config.js";
 import { NarrativeApiClient } from "./lib/api-client.js";
@@ -77,6 +78,11 @@ class MyMcpServer {
     this.resourceHandlers.setup();
     this.toolHandlers.setup();
     this.promptHandlers.setup();
+
+    this.server.setRequestHandler(SetLevelRequestSchema, async (request) => {
+      console.error(`[MCP Server] Log level set to: ${request.params.level}`);
+      return {};
+    });
   }
 
   private setupErrorHandling(): void {
