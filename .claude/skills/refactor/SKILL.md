@@ -1,3 +1,9 @@
+---
+name: refactor
+description: Analyze and improve a React/TypeScript code file following component composition, hooks, performance, and file organization best practices.
+argument-hint: "[react-file]"
+---
+
 # React Code File Improvement Instructions
 
 **File to improve:** `$ARGUMENTS`

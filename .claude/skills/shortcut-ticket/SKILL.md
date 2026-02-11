@@ -1,3 +1,9 @@
+---
+name: shortcut-ticket
+description: Create a new Shortcut ticket or rewrite an existing one with comprehensive specs including problem statement, requirements, SOC-2 compliance, and implementation plan.
+argument-hint: "[ticket-id-or-description]"
+---
+
 Create a shortcut ticket if I dont' give you one (`$ARGUMENTS`) or else look at the existing one and rewrite it to these specifications, including the title, description, and related stories.
 
 # Instructions for Creating Comprehensive Shortcut Tickets
@@ -6,7 +12,7 @@ Create a shortcut ticket if I dont' give you one (`$ARGUMENTS`) or else look at 
 When creating a Shortcut ticket, you must provide a complete specification that enables any team member to understand the problem, its context, and implementation requirements. Follow this structured approach to ensure all critical aspects are covered.
 
 ## Workflow
-Unless you know a ticket is for the Frontend, always use the Default Workflow, Team Backend for all Shortcut tickets you create. 
+Unless you know a ticket is for the Frontend, always use the Default Workflow, Team Backend for all Shortcut tickets you create.
 
 ## Required Sections
 
@@ -95,32 +101,6 @@ Address these areas:
 - **Responsible Team**: [Team name or squad responsible for implementation]
 
 ## SOC-2 Compliance Checklist
-### Security
-- [ ] Data encryption requirements (at rest/in transit)
-- [ ] Authentication/authorization changes needed
-- [ ] API security considerations
-- [ ] Vulnerability assessment needed?
-
-### Availability
-- [ ] SLA impact assessment
-- [ ] Redundancy requirements
-- [ ] Disaster recovery considerations
-
-### Processing Integrity
-- [ ] Data validation rules
-- [ ] Error handling requirements
-- [ ] Transaction integrity needs
-
-### Confidentiality
-- [ ] PII/sensitive data handling
-- [ ] Access control requirements
-- [ ] Data classification
-
-### Privacy
-- [ ] User consent requirements
-- [ ] Data retention policies
-- [ ] Right to deletion considerations
-
 ### Security
 - [ ] Data encryption requirements (at rest/in transit)
 - [ ] Authentication/authorization changes needed
@@ -269,7 +249,7 @@ Before submitting, ensure you've addressed:
 [Any other relevant information]
 ```
 
-** TICKET DESCRIPTIONS ARE LIMITED to 10,000 CHARACTERS ** 
+** TICKET DESCRIPTIONS ARE LIMITED to 10,000 CHARACTERS **
 
 ## Shortcut API Requirements for Creating Stories
 
