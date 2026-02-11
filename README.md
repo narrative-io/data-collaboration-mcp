@@ -150,6 +150,52 @@ Once connected, the Inspector provides tabs for each MCP capability:
 4. Use the **History** panel to review the request/response sequence
 5. Check **Server Notifications** for any logging messages from your server
 
+#### CLI Mode
+
+The inspector also supports a headless CLI mode (`--cli`) for one-shot invocations. This is useful for scripting, automated smoke tests, or when AI agents need to verify tool outputs during development.
+
+Each call spawns the server, executes the method, prints JSON to stdout, and exits.
+
+**List capabilities:**
+
+```bash
+# List all tools and their schemas
+npm run inspect -- --cli --method tools/list
+
+# List all resources
+npm run inspect -- --cli --method resources/list
+
+# List all prompts
+npm run inspect -- --cli --method prompts/list
+```
+
+**Call a tool:**
+
+```bash
+# Call the echo tool
+npm run inspect -- --cli --method tools/call --tool-name echo --tool-arg 'message=hello'
+
+# Search for rosetta stone attributes
+npm run inspect -- --cli --method tools/call --tool-name search_attributes --tool-arg 'query=email'
+
+# List datasets
+npm run inspect -- --cli --method tools/call --tool-name list_datasets
+```
+
+**Pipe through jq for readable output:**
+
+```bash
+npm run inspect -- --cli --method tools/call --tool-name search_attributes --tool-arg 'query=age' 2>/dev/null | jq '.content[0].text | fromjson'
+```
+
+**CLI-specific flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--method <method>` | MCP method to invoke (e.g. `tools/list`, `tools/call`, `resources/read`, `prompts/get`) |
+| `--tool-name <name>` | Tool name (required for `tools/call`) |
+| `--tool-arg 'key=value'` | Tool argument as key=value (repeatable for multiple args) |
+
 #### Troubleshooting
 
 - **Connect button does nothing**: Make sure the URL includes the `?MCP_PROXY_AUTH_TOKEN=...` query parameter. The inspector requires this token for authentication.
