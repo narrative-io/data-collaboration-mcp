@@ -80,12 +80,155 @@ The NQL execution prompt provides expert guidance including:
 - Rosetta Stone integration guidance
 - Post-execution result handling
 
-## Testing
+## Development
+
+### MCP Inspector
+
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is an interactive browser-based tool for testing and debugging MCP servers. It lets you connect to your server and manually invoke tools, browse resources, and test prompts — all without needing an LLM client.
+
+#### Quick Start
+
+```bash
+npm run inspect
+```
+
+This loads the server config from `.mcp.json`, passes your `.env` credentials, and opens the Inspector UI in your browser. The terminal output will include a URL with an auth token — make sure to use that full URL:
+
+```
+http://localhost:6274/?MCP_PROXY_AUTH_TOKEN=<token>
+```
+
+#### Manual Launch
+
+You can also run the inspector directly with full control over options:
+
+```bash
+# Using your .mcp.json config (recommended)
+source .env && npx @modelcontextprotocol/inspector \
+  --config .mcp.json \
+  --server data-collaboration \
+  -e NARRATIVE_API_URL=$NARRATIVE_API_URL \
+  -e NARRATIVE_API_TOKEN=$NARRATIVE_API_TOKEN
+
+# Using an explicit command
+source .env && npx @modelcontextprotocol/inspector \
+  -e NARRATIVE_API_URL=$NARRATIVE_API_URL \
+  -e NARRATIVE_API_TOKEN=$NARRATIVE_API_TOKEN \
+  bun src/index.ts
+
+# Against the compiled build
+npm run build && source .env && npx @modelcontextprotocol/inspector \
+  -e NARRATIVE_API_URL=$NARRATIVE_API_URL \
+  -e NARRATIVE_API_TOKEN=$NARRATIVE_API_TOKEN \
+  node build/index.js
+```
+
+#### Inspector CLI Flags
+
+| Flag | Description |
+|------|-------------|
+| `--config <path>` | Path to an MCP config file (e.g. `.mcp.json`) |
+| `--server <name>` | Server name from the config file to inspect |
+| `-e KEY=VALUE` | Pass environment variables to the spawned server |
+| `--transport <type>` | Transport type: `stdio`, `sse`, or `http` |
+| `--cli` | Run in CLI mode (no browser UI) |
+
+#### Using the Inspector UI
+
+Once connected, the Inspector provides tabs for each MCP capability:
+
+- **Tools** — List all tools, view their JSON schemas, execute them with custom inputs, and inspect the results
+- **Resources** — Browse available resources, view metadata, and read resource contents
+- **Prompts** — List prompt templates, fill in arguments, and preview the generated messages
+- **Notifications** — View server log messages and notifications in real time
+
+#### Development Workflow
+
+1. Start the inspector: `npm run inspect`
+2. Make changes to server code in `src/`
+3. The inspector spawns the server fresh on each Connect — click **Disconnect** then **Connect** to pick up changes
+4. Use the **History** panel to review the request/response sequence
+5. Check **Server Notifications** for any logging messages from your server
+
+#### CLI Mode
+
+The inspector also supports a headless CLI mode (`--cli`) for one-shot invocations. This is useful for scripting, automated smoke tests, or when AI agents need to verify tool outputs during development.
+
+Each call spawns the server, executes the method, prints JSON to stdout, and exits.
+
+**List capabilities:**
+
+```bash
+# List all tools and their schemas
+npm run inspect -- --cli --method tools/list
+
+# List all resources
+npm run inspect -- --cli --method resources/list
+
+# List all prompts
+npm run inspect -- --cli --method prompts/list
+```
+
+**Call a tool:**
+
+```bash
+# Call the echo tool
+npm run inspect -- --cli --method tools/call --tool-name echo --tool-arg 'message=hello'
+
+# Search for rosetta stone attributes
+npm run inspect -- --cli --method tools/call --tool-name search_attributes --tool-arg 'query=email'
+
+# List datasets
+npm run inspect -- --cli --method tools/call --tool-name list_datasets
+```
+
+**Pipe through jq for readable output:**
+
+```bash
+npm run inspect -- --cli --method tools/call --tool-name search_attributes --tool-arg 'query=age' 2>/dev/null | jq '.content[0].text | fromjson'
+```
+
+**CLI-specific flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--method <method>` | MCP method to invoke (e.g. `tools/list`, `tools/call`, `resources/read`, `prompts/get`) |
+| `--tool-name <name>` | Tool name (required for `tools/call`) |
+| `--tool-arg 'key=value'` | Tool argument as key=value (repeatable for multiple args) |
+
+#### Testing Features with the `/test-mcp-feature` Skill
+
+A Claude Code skill is available for AI agents to test MCP features using the Inspector CLI. Run it from Claude Code with:
+
+```
+/test-mcp-feature list_datasets
+```
+
+This walks agents through the full verification flow: checking feature registration, invoking the feature, parsing responses, and testing edge cases. See `.claude/commands/test-mcp-feature.md` for the full skill definition.
+
+#### Troubleshooting
+
+- **Connect button does nothing**: Make sure the URL includes the `?MCP_PROXY_AUTH_TOKEN=...` query parameter. The inspector requires this token for authentication.
+- **"Connection Error" after clicking Connect**: Check that your `.env` file contains valid `NARRATIVE_API_URL` and `NARRATIVE_API_TOKEN` values. The server will fail to start without them.
+- **Wrong command/args shown**: Use `--config .mcp.json --server data-collaboration` to load from your config file rather than manually entering the command.
+
+### Testing
 
 Run the test suite:
 ```bash
 bun run test
 ```
+
+### npm Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start the server in watch mode (auto-restarts on changes) |
+| `npm run build` | Type-check and compile to `build/` |
+| `npm run start` | Run the compiled server |
+| `npm run test` | Run the test suite |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run inspect` | Launch the MCP Inspector (browser UI + CLI mode) |
 
 ## Verification
 
