@@ -1,3 +1,8 @@
+---
+name: lint
+description: Run linting checks and fix all issues idiomatically. Never disables rules or suppresses errors.
+---
+
 # Instructions for Linting and Fixing Code Issues
 
 ## Objective

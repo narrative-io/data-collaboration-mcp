@@ -1,3 +1,9 @@
+---
+name: test
+description: Write tests for the specified code following AAA pattern, edge case coverage, and TypeScript best practices using bun test.
+argument-hint: "[file-or-module]"
+---
+
 Write tests for `$ARGUMENTS` using the best practices below.
 
 # Pre-Testing Checklist
@@ -39,11 +45,11 @@ When testing reducers or state management with Immer:
 - Use reducer actions to set up state instead of direct assignment
 
 ```typescript
-// ❌ Bad - direct mutation
+// Bad - direct mutation
 const state = new StateBuilder().build();
 state.filters.columnFilters = { name: "test" }; // This will fail!
 
-// ✅ Good - use actions
+// Good - use actions
 const state = new StateBuilder().build();
 const stateWithFilter = reducer(state, {
   type: "filters/setColumnFilter",
@@ -69,16 +75,16 @@ For complex external types (like Dataset, User, etc.):
 - Avoid `as any` - prefer `as unknown as Type` when type casting is necessary
 
 ```typescript
-// ❌ Bad - using any
+// Bad - using any
 const mockDataset = { id: "test", name: "Test" } as any;
 
-// ✅ Good - complete mock with proper typing
+// Good - complete mock with proper typing
 import type { Dataset } from "@narrative.io/data-collaboration-sdk-ts";
 
 function createMockDataset(overrides: Partial<Dataset> = {}): Dataset {
   return {
     id: "test-dataset",
-    name: "Test Dataset", 
+    name: "Test Dataset",
     company_id: "test-company",
     created_at: "2024-01-01T00:00:00Z",
     // ... all required properties
@@ -118,7 +124,7 @@ const data = {
 };
 // After linting might become:
 const data = {
-  name: "test", 
+  name: "test",
   status: "active",
   value: 10
 };
@@ -129,19 +135,19 @@ const data = {
 When you need to modify state for test setup:
 
 ```typescript
-// ❌ Bad - direct mutation
+// Bad - direct mutation
 const state = new StateBuilder().build();
 state.currentPage = 3;
 state.sortColumn = "name";
 
-// ✅ Good - create new state object
+// Good - create new state object
 const state = {
   ...new StateBuilder().build(),
   currentPage: 3,
   sortColumn: "name"
 };
 
-// ✅ Also good - use builder pattern
+// Also good - use builder pattern
 const state = new StateBuilder()
   .withCurrentPage(3)
   .withSortColumn("name")
@@ -168,9 +174,9 @@ describe("Module Name", () => {
   describe("Feature Group 1", () => {
     test("should handle specific case", () => { ... });
   });
-  
+
   describe("Feature Group 2", () => { ... });
-  
+
   describe("edge cases", () => { ... });
 });
 ```
@@ -184,7 +190,7 @@ describe("Module Name", () => {
 Each test should verify a single behavior or outcome:
 
 ```typescript
-// ❌ Bad - testing multiple behaviors
+// Bad - testing multiple behaviors
 test("user service works", () => {
   const user = createUser({ name: "John", email: "john@test.com" });
   expect(user.id).toBeDefined();
@@ -192,7 +198,7 @@ test("user service works", () => {
   expect(sendWelcomeEmail(user)).toBe(true);
 });
 
-// ✅ Good - focused tests
+// Good - focused tests
 test("should generate unique ID when creating user", () => {
   const user = createUser({ name: "John", email: "john@test.com" });
   expect(user.id).toBeDefined();
@@ -210,11 +216,11 @@ test("should set new users as active by default", () => {
 Test names should clearly describe the scenario and expected outcome:
 
 ```typescript
-// ❌ Bad
+// Bad
 test("error handling", () => {});
 test("validates input", () => {});
 
-// ✅ Good
+// Good
 test("should throw ValidationError when email format is invalid", () => {});
 test("should return false when password is shorter than 8 characters", () => {});
 test("should strip whitespace from username before validation", () => {});
@@ -229,10 +235,10 @@ test("should calculate compound interest correctly", () => {
   const rate = 0.05;
   const time = 2;
   const frequency = 12;
-  
+
   // Act
   const amount = calculateCompoundInterest(principal, rate, time, frequency);
-  
+
   // Assert
   expect(amount).toBeCloseTo(1104.94, 2);
 });
@@ -247,19 +253,19 @@ describe("validateAge", () => {
   test("should accept minimum valid age", () => {
     expect(validateAge(18)).toBe(true);
   });
-  
+
   test("should reject age below minimum", () => {
     expect(validateAge(17)).toBe(false);
   });
-  
+
   test("should handle zero", () => {
     expect(validateAge(0)).toBe(false);
   });
-  
+
   test("should handle negative numbers", () => {
     expect(validateAge(-1)).toBe(false);
   });
-  
+
   test("should handle very large numbers", () => {
     expect(validateAge(150)).toBe(false);
   });
@@ -292,22 +298,22 @@ class UserBuilder {
     age: 25,
     isActive: true
   };
-  
+
   withName(name: string) {
     this.user.name = name;
     return this;
   }
-  
+
   withAge(age: number) {
     this.user.age = age;
     return this;
   }
-  
+
   inactive() {
     this.user.isActive = false;
     return this;
   }
-  
+
   build() {
     return { ...this.user };
   }
@@ -320,7 +326,7 @@ test("should filter inactive users", () => {
     new UserBuilder().inactive().build(),
     new UserBuilder().withName("Jane").build()
   ];
-  
+
   const activeUsers = filterActiveUsers(users);
   expect(activeUsers).toHaveLength(2);
 });
@@ -357,7 +363,7 @@ describe("firstOrDefault", () => {
     expect(firstOrDefault([1, 2, 3], 0)).toBe(1);
     expect(firstOrDefault(["a", "b"], "default")).toBe("a");
   });
-  
+
   test("should return default for empty array", () => {
     expect(firstOrDefault([], 0)).toBe(0);
     expect(firstOrDefault<string>([], "default")).toBe("default");
@@ -370,7 +376,7 @@ describe("firstOrDefault", () => {
 ```typescript
 test("isValidEmail type guard should narrow type correctly", () => {
   const input: unknown = "test@example.com";
-  
+
   if (isValidEmail(input)) {
     // TypeScript should know input is string here
     expect(input.toLowerCase()).toBe("test@example.com");
@@ -385,21 +391,21 @@ test("isValidEmail type guard should narrow type correctly", () => {
 ### Test User Behavior, Not Implementation
 
 ```typescript
-// ❌ Bad - testing implementation details
+// Bad - testing implementation details
 test("should set state when button clicked", () => {
   const { result } = renderHook(() => useState(false));
   act(() => result.current[1](true));
   expect(result.current[0]).toBe(true);
 });
 
-// ✅ Good - testing user behavior
+// Good - testing user behavior
 test("should show success message when form is submitted", async () => {
   render(<ContactForm />);
-  
+
   await userEvent.type(screen.getByLabelText(/email/i), "user@example.com");
   await userEvent.type(screen.getByLabelText(/message/i), "Hello");
   await userEvent.click(screen.getByRole("button", { name: /submit/i }));
-  
+
   expect(await screen.findByText(/thank you/i)).toBeInTheDocument();
 });
 ```
@@ -407,11 +413,11 @@ test("should show success message when form is submitted", async () => {
 ### Query Elements by Accessible Roles
 
 ```typescript
-// ❌ Bad - using test IDs or implementation details
+// Bad - using test IDs or implementation details
 const button = screen.getByTestId("submit-button");
 const input = container.querySelector(".email-input");
 
-// ✅ Good - using accessible queries
+// Good - using accessible queries
 const button = screen.getByRole("button", { name: /submit/i });
 const input = screen.getByLabelText(/email address/i);
 const heading = screen.getByRole("heading", { level: 1 });
@@ -423,12 +429,12 @@ const heading = screen.getByRole("heading", { level: 1 });
 test("should display search results after typing", async () => {
   render(<SearchComponent />);
   const searchInput = screen.getByRole("searchbox");
-  
+
   await userEvent.type(searchInput, "react");
-  
+
   // Wait for debounced search
   expect(await screen.findByText(/loading/i)).toBeInTheDocument();
-  
+
   // Wait for results
   expect(await screen.findByText(/react basics/i)).toBeInTheDocument();
   expect(screen.getByText(/advanced react/i)).toBeInTheDocument();
@@ -440,25 +446,25 @@ test("should display search results after typing", async () => {
 ```typescript
 test("should be keyboard navigable", async () => {
   render(<Modal isOpen={true} />);
-  
+
   // Focus should be trapped in modal
   const closeButton = screen.getByRole("button", { name: /close/i });
   const firstInput = screen.getByLabelText(/name/i);
-  
+
   firstInput.focus();
   await userEvent.tab();
-  
+
   expect(closeButton).toHaveFocus();
-  
+
   await userEvent.tab();
   expect(firstInput).toHaveFocus(); // Focus wrapped around
 });
 
 test("should announce form errors to screen readers", async () => {
   render(<LoginForm />);
-  
+
   await userEvent.click(screen.getByRole("button", { name: /submit/i }));
-  
+
   const errorMessage = await screen.findByRole("alert");
   expect(errorMessage).toHaveTextContent(/email is required/i);
 });
@@ -493,17 +499,17 @@ describe("isExpired", () => {
     // Set system time to a known date
     setSystemTime(new Date("2024-01-01T12:00:00Z"));
   });
-  
+
   afterEach(() => {
     // Reset to real time
     setSystemTime();
   });
-  
+
   test("should return true for past dates", () => {
     const pastDate = new Date("2023-12-31T23:59:59Z");
     expect(isExpired(pastDate)).toBe(true);
   });
-  
+
   test("should return false for future dates", () => {
     const futureDate = new Date("2024-01-02T00:00:00Z");
     expect(isExpired(futureDate)).toBe(false);
@@ -518,13 +524,13 @@ test("should display fallback UI when child component throws", () => {
   const ThrowError = () => {
     throw new Error("Test error");
   };
-  
+
   render(
     <ErrorBoundary fallback={<div>Something went wrong</div>}>
       <ThrowError />
     </ErrorBoundary>
   );
-  
+
   expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
 });
 ```

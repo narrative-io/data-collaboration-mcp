@@ -1,3 +1,9 @@
+---
+name: migrate-to-nql
+description: Migrate React components from Snowflake SQL queries to NQL using the useNqlQuery hook. Handles query design, case sensitivity, and React dependency optimization.
+argument-hint: "[file-or-component]"
+---
+
 Migrate the queries used in: `$ARGUMENTS` from using Snowflake SQL to NQL.
 
 # Migrating from SQL Queries to NQL Queries
@@ -7,9 +13,9 @@ This guide provides instructions for migrating React components from SQL-based d
 ## Overview
 
 NQL (Narrative Query Language) queries create temporary materialized views and then sample the data, requiring a different approach than direct SQL execution. The process involves:
-1. Query submission → Job polling → Materialized view creation
-2. Sample request → Job polling → Sample preparation  
-3. Data fetching → Final results
+1. Query submission -> Job polling -> Materialized view creation
+2. Sample request -> Job polling -> Sample preparation
+3. Data fetching -> Final results
 
 ## Step-by-Step Migration Process
 
@@ -71,7 +77,7 @@ export function useCustomNqlQuery(
     // Build query with stable dependencies
     const nqlQuery = useMemo(() => {
         if (!param1 || !stableDependency) return "";
-        
+
         return `
             SELECT column1, column2
             FROM dataset.${param1}
@@ -87,7 +93,7 @@ export function useCustomNqlQuery(
     // Memoize data transformation
     const transformedData = useMemo(() => {
         if (!rawData) return null;
-        
+
         return rawData.map((row, index) => ({
             id: `${row.COLUMN1}_${index}`, // Stable, unique IDs
             value: String(row.COLUMN1 || row.column1 || ""),
@@ -131,8 +137,8 @@ const query = useMemo(() => buildQuery(), [largeArray]);
 **Solution:** Extract only what you need
 ```typescript
 // GOOD: Stable dependencies
-const specificItem = useMemo(() => 
-    largeArray.find(item => item.id === targetId), 
+const specificItem = useMemo(() =>
+    largeArray.find(item => item.id === targetId),
     [targetId, largeArray]
 );
 const query = useMemo(() => buildQuery(specificItem), [specificItem]);
@@ -148,7 +154,7 @@ const data = rawData?.map(row => ({ ...row, processed: true }));
 **Solution:** Memoize transformations
 ```typescript
 // GOOD: Stable object references
-const data = useMemo(() => 
+const data = useMemo(() =>
     rawData?.map(row => ({ ...row, processed: true })),
     [rawData]
 );
@@ -161,7 +167,7 @@ const data = useMemo(() =>
 // OLD
 const { data, isLoading, error } = useDatasetRows(datasetId);
 
-// NEW  
+// NEW
 const { data, isLoading, error } = useCustomNqlQuery(
     selectedAttribute,
     datasetName,
@@ -205,7 +211,7 @@ console.log('[CustomNqlQuery] Transformed:', transformedData);
 **Cause:** Unstable dependencies in useMemo/useCallback
 **Solution:** Use primitive values or properly memoized objects as dependencies
 
-### 2. Cache Issues  
+### 2. Cache Issues
 **Cause:** New datasets not appearing in dropdowns
 **Solution:** ~~Cache invalidation~~ Usually resolves automatically; avoid manual cache invalidation
 
@@ -251,7 +257,7 @@ const uniqueLabels = useMemo(() => {
 ```typescript
 const { data: uniqueLabels } = useNqlLabelsQuery(
     selectedAttribute,
-    datasetName, 
+    datasetName,
     referenceDatasets
 );
 

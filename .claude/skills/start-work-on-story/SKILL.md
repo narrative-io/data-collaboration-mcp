@@ -1,3 +1,9 @@
+---
+name: start-work-on-story
+description: Start development work on a Shortcut story. Creates a branch, analyzes requirements, sets up the environment, and plans implementation.
+argument-hint: "[story-id]"
+---
+
 # Start Work on Story Instructions
 
 **Story/Ticket ID:** `$ARGUMENTS`
@@ -10,13 +16,13 @@ Follow this workflow to start working on a new story or ticket efficiently and s
 
 #### Branch Naming Convention:
 
-Name the ticket after the shortcut ticket being worked on 
+Name the ticket after the shortcut ticket being worked on
 
 ```bash
 # For new features
 git checkout -b feat/sc-xxxx-brief-description
 
-# For bug fixes  
+# For bug fixes
 git checkout -b fix/sc-yyyy-brief-description
 
 # For documentation
@@ -176,7 +182,7 @@ git commit -m "feat: add dataset search functionality [sc-45538]"
 git commit -m "fix: resolve API timeout issue [sc-45539]"
 git commit -m "docs: update MCP server documentation [sc-45540]"
 
-# Using "refs sc-xxxxx" format  
+# Using "refs sc-xxxxx" format
 git commit -m "feat: implement user authentication - refs sc-45538"
 git commit -m "refactor: optimize search performance - refs sc-45539"
 ```

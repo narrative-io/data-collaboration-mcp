@@ -1,3 +1,8 @@
+---
+name: pr
+description: Create a new PR for the current branch or update an existing one. Follows team PR best practices for titles, descriptions, and checklists.
+---
+
 Create a PR for the current branch if one doesn't exist.  If one does exist, update it.  Use the guide below for best practices.
 
 # Pull Request Best Practices Guide

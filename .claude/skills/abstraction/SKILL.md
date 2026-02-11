@@ -1,3 +1,9 @@
+---
+name: abstraction
+description: Analyze a project or workspace to identify repeated patterns and propose abstractions for improved code reuse and maintainability.
+argument-hint: "[project-or-workspace-path]"
+---
+
 # Project-Wide Pattern Analysis and Abstraction
 
 **Project/Workspace to analyze:** `$ARGUMENTS`

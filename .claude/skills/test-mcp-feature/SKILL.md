@@ -1,3 +1,9 @@
+---
+name: test-mcp-feature
+description: Test an MCP server feature (tool, resource, or prompt) using the MCP Inspector CLI mode. Validates response shapes, data correctness, and error handling.
+argument-hint: "[feature-name]"
+---
+
 # Test MCP Server Feature
 
 **Feature to test:** `$ARGUMENTS`

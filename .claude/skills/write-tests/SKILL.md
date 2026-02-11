@@ -1,3 +1,9 @@
+---
+name: write-tests
+description: Generate comprehensive unit tests for React/TypeScript files using bun test runner with proper mocking, coverage targets, and organized test structure.
+argument-hint: "[file-or-files]"
+---
+
 # Unit Test Generation Instructions
 
 You are tasked with creating comprehensive unit tests for the following file(s): `$ARGUMENTS`
@@ -205,26 +211,26 @@ describe("UserProfile", () => {
   describe("rendering", () => {
     test("should display user information when data is loaded", async () => {
       userService.getUser.mockResolvedValue(mockUser);
-      
+
       render(<UserProfile userId="123" />);
-      
+
       expect(await screen.findByText("John Doe")).toBeInTheDocument();
       expect(screen.getByText("john@example.com")).toBeInTheDocument();
     });
 
     test("should show loading state initially", () => {
       userService.getUser.mockResolvedValue(mockUser);
-      
+
       render(<UserProfile userId="123" />);
-      
+
       expect(screen.getByText("Loading...")).toBeInTheDocument();
     });
 
     test("should display error message when user fetch fails", async () => {
       userService.getUser.mockRejectedValue(new Error("Network error"));
-      
+
       render(<UserProfile userId="123" />);
-      
+
       expect(await screen.findByText(/error/i)).toBeInTheDocument();
     });
   });
@@ -233,15 +239,15 @@ describe("UserProfile", () => {
     test("should call updateUser when save button is clicked", async () => {
       userService.getUser.mockResolvedValue(mockUser);
       userService.updateUser.mockResolvedValue({ ...mockUser, name: "Jane Doe" });
-      
+
       render(<UserProfile userId="123" />);
-      
+
       const input = await screen.findByLabelText("Name");
       fireEvent.change(input, { target: { value: "Jane Doe" } });
-      
+
       const saveButton = screen.getByRole("button", { name: "Save" });
       fireEvent.click(saveButton);
-      
+
       expect(userService.updateUser).toHaveBeenCalledWith("123", {
         name: "Jane Doe"
       });
