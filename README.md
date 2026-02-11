@@ -196,6 +196,16 @@ npm run inspect -- --cli --method tools/call --tool-name search_attributes --too
 | `--tool-name <name>` | Tool name (required for `tools/call`) |
 | `--tool-arg 'key=value'` | Tool argument as key=value (repeatable for multiple args) |
 
+#### Testing Features with the `/test-mcp-feature` Skill
+
+A Claude Code skill is available for AI agents to test MCP features using the Inspector CLI. Run it from Claude Code with:
+
+```
+/test-mcp-feature list_datasets
+```
+
+This walks agents through the full verification flow: checking feature registration, invoking the feature, parsing responses, and testing edge cases. See `.claude/commands/test-mcp-feature.md` for the full skill definition.
+
 #### Troubleshooting
 
 - **Connect button does nothing**: Make sure the URL includes the `?MCP_PROXY_AUTH_TOKEN=...` query parameter. The inspector requires this token for authentication.
@@ -208,6 +218,17 @@ Run the test suite:
 ```bash
 bun run test
 ```
+
+### npm Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start the server in watch mode (auto-restarts on changes) |
+| `npm run build` | Type-check and compile to `build/` |
+| `npm run start` | Run the compiled server |
+| `npm run test` | Run the test suite |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run inspect` | Launch the MCP Inspector (browser UI + CLI mode) |
 
 ## Verification
 
